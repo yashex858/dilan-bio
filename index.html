@@ -27,9 +27,9 @@
     }
   </style>
 </head>
-<body class="min-h-screen flex flex-col items-center p-4 sm:p-6 relative overflow-x-hidden">
+<body class="min-h-screen flex flex-col items-center p-4 sm:p-6 relative overflow-x-hidden pb-16">
 
-  <!-- Background Blur Canvas/Effect -->
+  <!-- Background Blur Effect -->
   <div id="bg-blur" class="fixed inset-0 pointer-events-none z-0 transition-all duration-300" style="filter: blur(20px); opacity: 0.5; background: radial-gradient(circle at 50% 30%, #6366f1 0%, #a855f7 40%, transparent 70%);"></div>
 
   <!-- Main Container -->
@@ -93,9 +93,7 @@
     </div>
 
     <!-- Links List -->
-    <div id="links-container" class="space-y-3">
-      <!-- Dynamic Links Injected Here -->
-    </div>
+    <div id="links-container" class="space-y-3"></div>
 
     <!-- Owner Edit Action Buttons -->
     <div class="owner-only hidden space-y-2 pt-2">
@@ -108,7 +106,23 @@
         <i class="fa-solid fa-user-pen"></i>
         <span>Edit Profile Info & Location</span>
       </button>
+
+      <button id="btn-add-post" class="w-full py-3 px-4 rounded-2xl bg-purple-600 hover:bg-purple-500 text-white font-semibold text-sm flex items-center justify-center space-x-2 transition shadow-lg">
+        <i class="fa-solid fa-square-plus"></i>
+        <span>Create New Post</span>
+      </button>
     </div>
+
+    <!-- Posts / Feed Section Header -->
+    <div class="pt-4 flex items-center justify-between border-t border-gray-800/80">
+      <h3 class="text-base font-bold text-white flex items-center space-x-2">
+        <i class="fa-regular fa-images text-indigo-400"></i>
+        <span>Recent Posts & Updates</span>
+      </h3>
+    </div>
+
+    <!-- Posts Container -->
+    <div id="posts-container" class="space-y-4"></div>
 
   </div>
 
@@ -127,6 +141,32 @@
       <div class="flex space-x-2 pt-2">
         <button id="btn-cancel-password" class="w-1/2 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-xl text-xs font-semibold">Cancel</button>
         <button id="btn-submit-password" class="w-1/2 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold">Unlock</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Create New Post -->
+  <div id="modal-post" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="glass-card rounded-3xl max-w-md w-full p-6 relative space-y-4">
+      <button class="btn-close-modal absolute top-4 right-4 text-gray-400 hover:text-white p-1">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+      <h3 class="text-lg font-bold text-white">Create New Post</h3>
+      
+      <div class="space-y-3">
+        <div>
+          <label class="block text-xs text-gray-400 mb-1">Post Image (Optional)</label>
+          <input type="file" id="input-post-image" accept="image/*" class="block w-full text-xs text-gray-400 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-500">
+        </div>
+        <div>
+          <label class="block text-xs text-gray-400 mb-1">Caption / Content</label>
+          <textarea id="input-post-caption" rows="3" placeholder="Write something..." class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-xl text-sm text-white focus:outline-none focus:border-indigo-500"></textarea>
+        </div>
+      </div>
+
+      <div class="flex space-x-2 pt-2">
+        <button class="btn-close-modal w-1/2 py-2.5 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-xl text-xs font-semibold">Cancel</button>
+        <button id="btn-save-post" class="w-1/2 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold">Publish Post</button>
       </div>
     </div>
   </div>
@@ -261,7 +301,8 @@
     let isOwnerMode = false;
     let editingLinkId = null;
     let cropper = null;
-    let ownerPassword = localStorage.getItem('dilan_owner_pass') || 'dilan 01';
+    let newPostImageData = null;
+    let ownerPassword = localStorage.getItem('dilan_owner_pass') || 'dilan01';
 
     let appData = JSON.parse(localStorage.getItem('dilan_bio_data')) || {
       profile: {
@@ -276,6 +317,16 @@
         { id: '1', title: "Explore My Portfolio", url: "#", icon: "fa-globe" },
         { id: '2', title: "Book a 1on1 Consultation", url: "#", icon: "fa-calendar" },
         { id: '3', title: "Read My Recent Articles", url: "#", icon: "fa-newspaper" }
+      ],
+      posts: [
+        {
+          id: '101',
+          caption: "Excited to launch my new portfolio bio page! Stay tuned for more project updates 🚀",
+          image: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80",
+          likes: 12,
+          date: "Just now",
+          comments: ["Awesome build!", "Looks super clean! 🔥"]
+        }
       ]
     };
 
@@ -336,6 +387,58 @@
         linksContainer.appendChild(linkEl);
       });
 
+      // Posts render
+      const postsContainer = document.getElementById('posts-container');
+      postsContainer.innerHTML = '';
+
+      if (!appData.posts || appData.posts.length === 0) {
+        postsContainer.innerHTML = `<p class="text-xs text-gray-500 text-center py-4">No posts published yet.</p>`;
+      } else {
+        appData.posts.forEach(post => {
+          const postEl = document.createElement('div');
+          postEl.className = "glass-card rounded-3xl p-4 space-y-3 shadow-lg relative overflow-hidden";
+          
+          let commentsHtml = (post.comments || []).map(c => `
+            <div class="bg-gray-900/60 p-2 rounded-xl text-xs text-gray-300">${c}</div>
+          `).join('');
+
+          postEl.innerHTML = `
+            <div class="flex items-center justify-between">
+              <div class="flex items-center space-x-2">
+                <img src="${appData.profile.avatar}" class="w-8 h-8 rounded-full object-cover border border-indigo-500/40">
+                <div>
+                  <h4 class="text-xs font-bold text-white">${appData.profile.name}</h4>
+                  <p class="text-[10px] text-gray-400">${post.date || 'Recent'}</p>
+                </div>
+              </div>
+              ${isOwnerMode ? `
+                <button onclick="deletePost('${post.id}')" class="text-gray-400 hover:text-red-400 p-1"><i class="fa-solid fa-trash text-xs"></i></button>
+              ` : ''}
+            </div>
+
+            ${post.caption ? `<p class="text-xs text-gray-200 leading-relaxed">${post.caption}</p>` : ''}
+            ${post.image ? `<img src="${post.image}" class="w-full h-48 object-cover rounded-2xl border border-gray-800">` : ''}
+
+            <div class="flex items-center justify-between pt-1 border-t border-gray-800/60 text-xs text-gray-400">
+              <button onclick="likePost('${post.id}')" class="flex items-center space-x-1.5 hover:text-pink-400 transition">
+                <i class="fa-solid fa-heart text-pink-500"></i>
+                <span>${post.likes || 0} Likes</span>
+              </button>
+              <span class="text-[11px]">${(post.comments || []).length} comments</span>
+            </div>
+
+            <div class="space-y-1.5 pt-1">
+              ${commentsHtml}
+              <div class="flex space-x-1 pt-1">
+                <input type="text" id="input-comment-${post.id}" placeholder="Add a comment..." class="flex-1 px-3 py-1.5 bg-gray-900 border border-gray-800 rounded-xl text-xs text-white focus:outline-none focus:border-indigo-500">
+                <button onclick="addComment('${post.id}')" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold">Post</button>
+              </div>
+            </div>
+          `;
+          postsContainer.appendChild(postEl);
+        });
+      }
+
       // Update Mode UI
       if (isOwnerMode) {
         modeText.textContent = "Owner Mode";
@@ -380,13 +483,76 @@
       modalPassword.classList.add('hidden');
     });
 
-    // Close Modals logic
+    // Close Modals
     document.querySelectorAll('.btn-close-modal').forEach(btn => {
       btn.addEventListener('click', () => {
         document.querySelectorAll('.fixed').forEach(m => m.classList.add('hidden'));
         if (cropper) { cropper.destroy(); cropper = null; }
       });
     });
+
+    // Post Management
+    document.getElementById('btn-add-post').addEventListener('click', () => {
+      newPostImageData = null;
+      document.getElementById('input-post-caption').value = '';
+      document.getElementById('input-post-image').value = '';
+      document.getElementById('modal-post').classList.remove('hidden');
+    });
+
+    document.getElementById('input-post-image').addEventListener('change', (e) => {
+      const files = e.target.files;
+      if (files && files.length > 0) {
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+          newPostImageData = evt.target.result;
+        };
+        reader.readAsDataURL(files[0]);
+      }
+    });
+
+    document.getElementById('btn-save-post').addEventListener('click', () => {
+      const caption = document.getElementById('input-post-caption').value;
+      if (!caption && !newPostImageData) return;
+
+      if (!appData.posts) appData.posts = [];
+
+      appData.posts.unshift({
+        id: Date.now().toString(),
+        caption: caption,
+        image: newPostImageData,
+        likes: 0,
+        date: "Just now",
+        comments: []
+      });
+
+      document.getElementById('modal-post').classList.add('hidden');
+      render();
+    });
+
+    window.deletePost = function(id) {
+      appData.posts = appData.posts.filter(p => p.id !== id);
+      render();
+    };
+
+    window.likePost = function(id) {
+      const post = appData.posts.find(p => p.id === id);
+      if (post) {
+        post.likes = (post.likes || 0) + 1;
+        render();
+      }
+    };
+
+    window.addComment = function(id) {
+      const input = document.getElementById(`input-comment-${id}`);
+      if (input && input.value.trim() !== '') {
+        const post = appData.posts.find(p => p.id === id);
+        if (post) {
+          if (!post.comments) post.comments = [];
+          post.comments.push(input.value.trim());
+          render();
+        }
+      }
+    };
 
     // Blur Sliders
     document.getElementById('btn-open-blur').addEventListener('click', () => {
