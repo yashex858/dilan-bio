@@ -185,7 +185,7 @@
         <div id="new-client-chat-box" class="pt-2 border-t border-gray-800/80 space-y-2">
           <p class="text-[10px] text-gray-400">Start a new message with your name:</p>
           <div class="flex space-x-2">
-            <input type="text" id="chat-username" placeholder="whats Your Name*" class="flex-1 px-3 py-1.5 bg-gray-900 border border-gray-800 rounded-xl text-xs text-white focus:outline-none focus:border-indigo-500">
+            <input type="text" id="chat-username" placeholder="Your Name (e.g. Asam)*" class="flex-1 px-3 py-1.5 bg-gray-900 border border-gray-800 rounded-xl text-xs text-white focus:outline-none focus:border-indigo-500">
             <button onclick="startNewClientChat()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold transition">Start Chat</button>
           </div>
           <p id="chat-error" class="text-[10px] text-red-400 hidden">Please enter your name first!</p>
@@ -380,7 +380,7 @@
     let cropper = null;
     let newPostImageData = null;
     let newChatImageData = null;
-    let ownerPassword = localStorage.getItem('dilan_owner_pass') || 'dilan01';
+    let ownerPassword = localStorage.getItem('dilan_owner_pass') || 'dilan 01';
 
     const avatarColors = [
       'bg-indigo-600', 'bg-pink-600', 'bg-purple-600', 
@@ -416,18 +416,7 @@
           comments: ["Awesome build!", "Looks super clean! 🔥"]
         }
       ],
-      clients: {
-        "Asam": [
-          { id: 'm1', sender: "Asam", text: "Ba Pala", time: "Mon", isOwner: false },
-          { id: 'm2', sender: "dilan", text: "Got it!", time: "Mon", isOwner: true }
-        ],
-        "Scammer": [
-          { id: 'm3', sender: "Scammer", text: "Oh ok ok", time: "Sun", isOwner: false }
-        ],
-        "LX7 - Yassin": [
-          { id: 'm4', sender: "LX7 - Yassin", text: "body maybe sell", time: "Fri", isOwner: false }
-        ]
-      }
+      clients: {}
     };
 
     const btnToggleMode = document.getElementById('btn-toggle-mode');
@@ -465,27 +454,12 @@
     // Chat List and Thread Management
     window.showChatList = function() {
       selectedClient = null;
-      document.getElementById('chat-list-view').classList.remove('hidden');
-      document.getElementById('chat-thread-view').classList.add('hidden');
-      document.getElementById('btn-back-chatlist').classList.add('hidden');
-      document.getElementById('chat-header-title').textContent = "Chats List";
-      
-      if (!isOwnerMode) {
-        document.getElementById('new-client-chat-box').classList.remove('hidden');
-      } else {
-        document.getElementById('new-client-chat-box').classList.add('hidden');
-      }
-      renderChatList();
+      render();
     };
 
     window.openClientChat = function(clientName) {
       selectedClient = clientName;
-      document.getElementById('chat-list-view').classList.add('hidden');
-      document.getElementById('chat-thread-view').classList.remove('hidden');
-      document.getElementById('btn-back-chatlist').classList.remove('hidden');
-      document.getElementById('chat-header-title').textContent = clientName;
-      document.getElementById('new-client-chat-box').classList.add('hidden');
-      renderChatThread();
+      render();
     };
 
     window.startNewClientChat = function() {
@@ -496,10 +470,13 @@
         return;
       }
       err.classList.add('hidden');
+      if (!appData.clients) appData.clients = {};
       if (!appData.clients[name]) {
         appData.clients[name] = [];
       }
-      openClientChat(name);
+      selectedClient = name;
+      document.getElementById('chat-username').value = '';
+      render();
     };
 
     function renderChatList() {
@@ -545,53 +522,52 @@
 
       const msgs = appData.clients[selectedClient] || [];
       if (msgs.length === 0) {
-        threadBox.innerHTML = `<p class="text-xs text-gray-500 text-center py-4">Send a message to ${selectedClient}!</p>`;
-        return;
-      }
+        threadBox.innerHTML = `<p class="text-xs text-gray-500 text-center py-4">Send a message to start the conversation!</p>`;
+      } else {
+        msgs.forEach(msg => {
+          const isOwnerMsg = msg.isOwner || (msg.sender && (msg.sender.toLowerCase() === 'dilan' || msg.sender.toLowerCase() === 'dilan01'));
+          const badgeColor = getAvatarColor(msg.sender || 'Client');
+          const initial = (msg.sender || 'C').charAt(0).toUpperCase();
 
-      msgs.forEach(msg => {
-        const isOwnerMsg = msg.isOwner || (msg.sender && (msg.sender.toLowerCase() === 'dilan' || msg.sender.toLowerCase() === 'dilan01'));
-        const badgeColor = getAvatarColor(msg.sender || 'Client');
-        const initial = (msg.sender || 'C').charAt(0).toUpperCase();
+          const msgWrapper = document.createElement('div');
+          msgWrapper.className = `flex ${isOwnerMsg ? 'justify-end' : 'justify-start'} items-end space-x-2 relative group`;
 
-        const msgWrapper = document.createElement('div');
-        msgWrapper.className = `flex ${isOwnerMsg ? 'justify-end' : 'justify-start'} items-end space-x-2 relative group`;
-
-        msgWrapper.innerHTML = `
-          ${!isOwnerMsg ? `
-            <div class="w-7 h-7 rounded-full ${badgeColor} flex items-center justify-center text-white font-bold text-[10px] shrink-0 shadow-md">
-              ${initial}
-            </div>
-          ` : ''}
-
-          <div class="max-w-[80%] rounded-2xl p-3 shadow-md border ${
-            isOwnerMsg 
-              ? 'bg-indigo-600/90 text-white rounded-br-none border-indigo-400/30' 
-              : 'bg-gray-900/90 text-gray-100 rounded-bl-none border-gray-800'
-          }">
-            <div class="flex items-center justify-between space-x-3 mb-1">
-              <span class="text-[11px] font-extrabold ${isOwnerMsg ? 'text-indigo-200' : 'text-pink-400'}">${msg.sender}</span>
-              <div class="flex items-center space-x-1">
-                <span class="text-[9px] text-gray-400">${msg.time}</span>
-                ${isOwnerMode ? `
-                  <button onclick="deleteChatMessage('${msg.id}')" class="text-gray-400 hover:text-red-400 text-[10px] ml-1"><i class="fa-solid fa-trash"></i></button>
-                ` : ''}
+          msgWrapper.innerHTML = `
+            ${!isOwnerMsg ? `
+              <div class="w-7 h-7 rounded-full ${badgeColor} flex items-center justify-center text-white font-bold text-[10px] shrink-0 shadow-md">
+                ${initial}
               </div>
+            ` : ''}
+
+            <div class="max-w-[80%] rounded-2xl p-3 shadow-md border ${
+              isOwnerMsg 
+                ? 'bg-indigo-600/90 text-white rounded-br-none border-indigo-400/30' 
+                : 'bg-gray-900/90 text-gray-100 rounded-bl-none border-gray-800'
+            }">
+              <div class="flex items-center justify-between space-x-3 mb-1">
+                <span class="text-[11px] font-extrabold ${isOwnerMsg ? 'text-indigo-200' : 'text-pink-400'}">${msg.sender}</span>
+                <div class="flex items-center space-x-1">
+                  <span class="text-[9px] text-gray-400">${msg.time}</span>
+                  ${isOwnerMode ? `
+                    <button onclick="deleteChatMessage('${msg.id}')" class="text-gray-400 hover:text-red-400 text-[10px] ml-1"><i class="fa-solid fa-trash"></i></button>
+                  ` : ''}
+                </div>
+              </div>
+
+              ${msg.text ? `<p class="text-xs leading-relaxed break-words">${msg.text}</p>` : ''}
+              ${msg.image ? `<img src="${msg.image}" class="w-full max-h-48 object-cover rounded-xl mt-2 border border-black/20 shadow-inner">` : ''}
             </div>
 
-            ${msg.text ? `<p class="text-xs leading-relaxed break-words">${msg.text}</p>` : ''}
-            ${msg.image ? `<img src="${msg.image}" class="w-full max-h-48 object-cover rounded-xl mt-2 border border-black/20 shadow-inner">` : ''}
-          </div>
-
-          ${isOwnerMsg ? `
-            <div class="w-7 h-7 rounded-full bg-purple-600 flex items-center justify-center text-white font-bold text-[10px] shrink-0 shadow-md">
-              D
-            </div>
-          ` : ''}
-        `;
-        threadBox.appendChild(msgWrapper);
-      });
-      threadBox.scrollTop = threadBox.scrollHeight;
+            ${isOwnerMsg ? `
+              <div class="w-7 h-7 rounded-full bg-purple-600 flex items-center justify-center text-white font-bold text-[10px] shrink-0 shadow-md">
+                D
+              </div>
+            ` : ''}
+          `;
+          threadBox.appendChild(msgWrapper);
+        });
+        threadBox.scrollTop = threadBox.scrollHeight;
+      }
     }
 
     // Render Main Data
@@ -639,21 +615,36 @@
         linksContainer.appendChild(linkEl);
       });
 
-      // Render Active Chat View
+      // Render Active Chat View Controls
+      const listView = document.getElementById('chat-list-view');
+      const threadView = document.getElementById('chat-thread-view');
+      const backBtn = document.getElementById('btn-back-chatlist');
+      const headerTitle = document.getElementById('chat-header-title');
+      const newChatBox = document.getElementById('new-client-chat-box');
+
       if (selectedClient) {
+        listView.classList.add('hidden');
+        threadView.classList.remove('hidden');
+        backBtn.classList.remove('hidden');
+        headerTitle.textContent = selectedClient;
+        newChatBox.classList.add('hidden');
         renderChatThread();
       } else {
+        listView.classList.remove('hidden');
+        threadView.classList.add('hidden');
+        backBtn.classList.add('hidden');
+        headerTitle.textContent = "Chats List";
+        if (isOwnerMode) {
+          newChatBox.classList.add('hidden');
+        } else {
+          newChatBox.classList.remove('hidden');
+        }
         renderChatList();
       }
 
-      // Hide or show start new chat box depending on owner mode
       if (isOwnerMode) {
-        document.getElementById('new-client-chat-box').classList.add('hidden');
         document.getElementById('chat-mode-badge').textContent = "Owner Admin Chat";
       } else {
-        if (!selectedClient) {
-          document.getElementById('new-client-chat-box').classList.remove('hidden');
-        }
         document.getElementById('chat-mode-badge').textContent = "Direct Messages";
       }
 
@@ -770,7 +761,6 @@
 
       if (!textInput && !newChatImageData) return;
 
-      // Automatically assign sender as 'dilan' when in Owner Mode!
       const senderName = isOwnerMode ? "dilan" : selectedClient;
       const now = new Date();
       const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
