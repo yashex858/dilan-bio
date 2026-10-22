@@ -1,1062 +1,519 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bio-Link & Portfolio App</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Cropper.js -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
-    <!-- Leaflet CSS & JS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; }
-        .glass { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.2); }
-        .glass-dark { background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.1); }
-        .hide-scrollbar::-webkit-scrollbar { display: none; }
-        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bio-Link & Portfolio App</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Cropper.js CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+  <style>
+    body {
+      background-color: #0f0c1b;
+      color: #f3f4f6;
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+    .glass-card {
+      background: rgba(30, 27, 51, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .img-cropper-container {
+      max-height: 350px;
+      width: 100%;
+    }
+  </style>
 </head>
-<body id="mainBody" class="bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-slate-100 min-h-screen pb-32 transition-colors duration-300">
+<body class="min-h-screen flex flex-col items-center p-4 sm:p-6 relative overflow-x-hidden">
 
-    <!-- Top Floating Header -->
-    <header class="sticky top-0 z-40 px-4 py-3 flex items-center justify-between glass-dark border-b border-white/10 mx-auto max-w-md my-2 rounded-2xl shadow-lg">
-        <div class="flex items-center space-x-2">
-            <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-500 to-pink-500 flex items-center justify-center text-white font-bold text-lg shadow-md">
-                B
-            </div>
-            <div>
-                <h1 class="font-bold text-sm leading-tight text-white" id="headerProfileName">Alex Rivera</h1>
-                <p class="text-[10px] text-indigo-300">Digital Creator & Dev</p>
-            </div>
+  <!-- Background Blur Canvas/Effect -->
+  <div id="bg-blur" class="fixed inset-0 pointer-events-none z-0 transition-all duration-300" style="filter: blur(20px); opacity: 0.5; background: radial-gradient(circle at 50% 30%, #6366f1 0%, #a855f7 40%, transparent 70%);"></div>
+
+  <!-- Main Container -->
+  <div class="w-full max-w-md z-10 space-y-4">
+
+    <!-- Top Bar Header -->
+    <header class="glass-card rounded-2xl p-3 flex items-center justify-between shadow-lg">
+      <div class="flex items-center space-x-3">
+        <div id="header-avatar-badge" class="w-10 h-10 rounded-full bg-indigo-600 flex items-center justify-center text-white font-bold text-lg">
+          A
         </div>
-        
-        <div class="flex items-center space-x-2">
-            <!-- Background Theme Modal Toggle (Owner Only) -->
-            <button id="bgCustomizeBtn" onclick="toggleBgModal()" class="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-indigo-300 transition text-xs flex items-center space-x-1 hidden" title="Customize Background">
-                <i class="fa-solid fa-palette"></i>
-            </button>
-            <!-- Mode Switcher (Owner vs Client) -->
-            <button id="modeToggleBtn" onclick="toggleMode()" class="px-3 py-1.5 rounded-xl text-xs font-medium bg-indigo-600 hover:bg-indigo-500 text-white shadow transition flex items-center space-x-1.5">
-                <i class="fa-solid fa-user-gear"></i>
-                <span id="modeText">Client Mode</span>
-            </button>
+        <div>
+          <h2 id="header-name" class="font-bold text-sm leading-tight text-white">Alex Rivera</h2>
+          <p id="header-title" class="text-xs text-gray-400">Digital Creator & Dev</p>
         </div>
+      </div>
+
+      <div class="flex items-center space-x-2">
+        <!-- Blur Control Toggle Button -->
+        <button id="btn-open-blur" class="p-2 rounded-xl bg-gray-800/60 hover:bg-gray-700/60 text-gray-300 hover:text-white transition">
+          <i class="fa-solid fa-palette text-sm"></i>
+        </button>
+
+        <!-- Mode Toggle Button -->
+        <button id="btn-toggle-mode" class="px-3 py-1.5 rounded-xl bg-indigo-600/80 hover:bg-indigo-600 text-white text-xs font-semibold flex items-center space-x-1.5 transition">
+          <i id="mode-icon" class="fa-solid fa-user-lock"></i>
+          <span id="mode-text">Client Mode</span>
+        </button>
+      </div>
     </header>
 
-    <!-- Main Container -->
-    <main class="max-w-md mx-auto px-4 pt-2">
+    <!-- Profile Card -->
+    <div class="glass-card rounded-3xl p-6 text-center shadow-xl relative overflow-hidden">
+      <!-- Profile Image Container -->
+      <div class="relative w-24 h-24 mx-auto mb-4 group">
+        <img id="profile-img" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80" alt="Profile" class="w-24 h-24 rounded-full object-cover border-2 border-indigo-500/50 shadow-md">
+        
+        <!-- Owner Mode Change Image Overlay -->
+        <button id="btn-change-avatar" class="owner-only hidden absolute bottom-0 right-0 w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center shadow-lg hover:bg-indigo-500 transition">
+          <i class="fa-solid fa-camera text-xs"></i>
+        </button>
+      </div>
 
-        <!-- TAB 1: Links & Bio -->
-        <section id="tab-links" class="space-y-6">
-            <!-- Profile Avatar & Bio Card -->
-            <div class="glass p-6 rounded-3xl text-center relative overflow-hidden shadow-2xl">
-                <div class="absolute -top-10 -right-10 w-32 h-32 bg-indigo-500/20 rounded-full blur-2xl pointer-events-none"></div>
-                <div class="absolute -bottom-10 -left-10 w-32 h-32 bg-pink-500/20 rounded-full blur-2xl pointer-events-none"></div>
+      <!-- Name & Bio -->
+      <h1 id="profile-name" class="text-2xl font-extrabold text-white mb-1">Alex Rivera</h1>
+      <p id="profile-bio" class="text-sm text-gray-300 leading-relaxed mb-3">Building immersive web experiences, design systems, and digital art. Let's collaborate!</p>
 
-                <div class="relative inline-block mx-auto mb-4 group">
-                    <img id="profileAvatarImg" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80" alt="Avatar" class="w-24 h-24 rounded-full object-cover border-4 border-white/20 shadow-xl mx-auto cursor-pointer" onclick="openLightbox(this.src)" onerror="this.src='https://placehold.co/400x400/6366f1/ffffff?text=Avatar'">
-                    <!-- Hidden File Input for Device Avatar Upload -->
-                    <input type="file" id="avatarFileInput" accept="image/*" class="hidden" onchange="handleAvatarDeviceUpload(event)">
-                    <button id="editAvatarBtn" onclick="document.getElementById('avatarFileInput').click()" class="absolute bottom-0 right-0 bg-indigo-600 hover:bg-indigo-500 text-white p-2 rounded-full shadow-lg hidden transition" title="Upload from Device">
-                        <i class="fa-solid fa-camera text-xs"></i>
-                    </button>
-                </div>
+      <!-- Location Badge -->
+      <div class="inline-flex items-center space-x-1 px-3 py-1 rounded-full bg-gray-800/50 border border-gray-700/50 text-xs text-pink-400 mb-4">
+        <i class="fa-solid fa-location-dot"></i>
+        <span id="profile-location">San Francisco, CA</span>
+      </div>
 
-                <h2 id="profileTitle" class="text-xl font-bold text-white mb-1">Alex Rivera</h2>
-                <p id="profileBio" class="text-xs text-slate-300 max-w-xs mx-auto leading-relaxed mb-4">Building immersive web experiences, design systems, and digital art. Let's collaborate!</p>
-
-                <!-- Location Display -->
-                <div id="profileLocationBadge" class="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-white/10 text-xs text-indigo-200 mb-4 cursor-pointer hover:bg-white/20 transition" onclick="openMapModal()">
-                    <i class="fa-solid fa-location-dot text-pink-400"></i>
-                    <span id="locationText">San Francisco, CA</span>
-                </div>
-
-                <!-- Social Icons Bar -->
-                <div id="socialIconsBar" class="flex justify-center space-x-3 mt-2">
-                    <a href="https://github.com" target="_blank" class="w-10 h-10 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition shadow"><i class="fa-brands fa-github"></i></a>
-                    <a href="https://twitter.com" target="_blank" class="w-10 h-10 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center text-indigo-400 transition shadow"><i class="fa-brands fa-twitter"></i></a>
-                    <a href="https://instagram.com" target="_blank" class="w-10 h-10 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center text-pink-400 transition shadow"><i class="fa-brands fa-instagram"></i></a>
-                    <a href="mailto:alex@example.com" class="w-10 h-10 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center text-emerald-400 transition shadow"><i class="fa-solid fa-envelope"></i></a>
-                </div>
-            </div>
-
-            <!-- Custom Links List -->
-            <div class="space-y-3" id="linksContainer">
-                <!-- Injected dynamically -->
-            </div>
-
-            <!-- Owner Edit Profile / Add Link Controls -->
-            <div id="ownerLinkControls" class="hidden space-y-3 pt-2">
-                <button onclick="openLinkModal()" class="w-full py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-500 font-semibold text-sm text-white shadow-lg shadow-indigo-600/30 transition flex items-center justify-center space-x-2">
-                    <i class="fa-solid fa-plus"></i>
-                    <span>Add New Link</span>
-                </button>
-                <button onclick="openProfileEditModal()" class="w-full py-3 rounded-2xl bg-white/10 hover:bg-white/20 font-semibold text-sm text-white shadow transition flex items-center justify-center space-x-2">
-                    <i class="fa-solid fa-pen-to-square"></i>
-                    <span>Edit Profile Info & Location</span>
-                </button>
-            </div>
-        </section>
-
-        <!-- TAB 2: Feed Posts -->
-        <section id="tab-posts" class="space-y-4 hidden">
-            <div class="flex items-center justify-between mb-2">
-                <h3 class="text-sm font-bold uppercase tracking-wider text-indigo-300 px-1">Recent Updates</h3>
-                <button id="ownerPostBtn" onclick="openPostModal()" class="hidden px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow transition flex items-center space-x-1">
-                    <i class="fa-solid fa-plus"></i>
-                    <span>New Post</span>
-                </button>
-            </div>
-
-            <div id="postsContainer" class="space-y-4">
-                <!-- Injected dynamically -->
-            </div>
-        </section>
-
-        <!-- TAB 3: Chat -->
-        <section id="tab-chat" class="space-y-4 hidden">
-            <!-- Client Name Prompt Screen (For visitors before chatting) -->
-            <div id="clientNameCard" class="glass rounded-3xl p-6 shadow-2xl space-y-4">
-                <div class="text-center space-y-1">
-                    <div class="w-12 h-12 rounded-2xl bg-indigo-600/30 border border-indigo-500/30 flex items-center justify-center text-indigo-300 mx-auto text-xl mb-2">
-                        <i class="fa-solid fa-comments"></i>
-                    </div>
-                    <h3 class="font-bold text-sm text-white">Start a Conversation</h3>
-                    <p class="text-xs text-slate-300">Please enter your name so Alex knows who is messaging.</p>
-                </div>
-                <div class="space-y-3">
-                    <input type="text" id="visitorNameInput" placeholder="Your Name or Company..." class="w-full bg-white/10 border border-white/10 rounded-2xl px-4 py-3 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-indigo-500">
-                    <button onclick="registerVisitorName()" class="w-full py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold text-white shadow-lg transition">Enter Chat Room</button>
-                </div>
-            </div>
-
-            <!-- Active Chat Box Area -->
-            <div id="chatBoxCard" class="glass rounded-3xl p-4 shadow-2xl flex flex-col h-[65vh] hidden">
-                <div class="flex items-center justify-between pb-3 border-b border-white/10 mb-3">
-                    <div class="flex items-center space-x-2">
-                        <div class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></div>
-                        <div>
-                            <h3 id="chatHeaderTitle" class="text-xs font-bold text-white uppercase tracking-wider">Chat with Alex</h3>
-                            <p id="chatSubHeader" class="text-[10px] text-indigo-300">Direct Message</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center space-x-2">
-                        <button id="changeNameBtn" onclick="resetVisitorSession()" class="text-[10px] text-indigo-300 hover:text-white transition hidden">Change Name</button>
-                        <button onclick="clearChatHistory()" class="text-[10px] text-slate-400 hover:text-rose-400 transition">Clear</button>
-                    </div>
-                </div>
-
-                <!-- Owner Client Selector Dropdown -->
-                <div id="ownerClientSelectorWrapper" class="hidden mb-3 bg-white/5 p-2 rounded-2xl flex items-center justify-between border border-white/10">
-                    <span class="text-[10px] text-indigo-200 font-medium">Select Client:</span>
-                    <select id="clientSelector" onchange="switchClientChat(this.value)" class="bg-slate-800 text-white text-xs rounded-xl px-3 py-1 border border-white/10 outline-none">
-                        <!-- Populated dynamically -->
-                    </select>
-                </div>
-
-                <!-- Messages Scroll Area -->
-                <div id="chatMessages" class="flex-1 overflow-y-auto space-y-3 pr-1 text-xs">
-                    <!-- Injected dynamically -->
-                </div>
-
-                <!-- Chat Input Area -->
-                <div class="pt-3 border-t border-white/10 mt-2 space-y-2">
-                    <div id="chatAttachmentPreview" class="hidden relative inline-block">
-                        <img id="chatAttachedImg" src="" class="w-16 h-16 object-cover rounded-xl border border-white/20">
-                        <button onclick="removeChatAttachment()" class="absolute -top-2 -right-2 bg-rose-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px]">&times;</button>
-                    </div>
-
-                    <div class="flex items-center space-x-2">
-                        <label class="p-2.5 rounded-2xl bg-white/10 hover:bg-white/20 text-indigo-300 cursor-pointer transition">
-                            <i class="fa-solid fa-paperclip text-xs"></i>
-                            <input type="file" accept="image/*" class="hidden" onchange="handleChatAttachment(event)">
-                        </label>
-                        <input type="text" id="chatInput" placeholder="Type a message..." onkeydown="if(event.key==='Enter') sendChatMessage()" class="flex-1 bg-white/10 border border-white/10 rounded-2xl px-4 py-2.5 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-indigo-500">
-                        <button onclick="sendChatMessage()" class="p-2.5 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white transition shadow">
-                            <i class="fa-solid fa-paper-plane text-xs"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-    </main>
-
-    <!-- Bottom Navigation Bar -->
-    <nav class="fixed bottom-0 left-0 right-0 z-50 max-w-md mx-auto p-3">
-        <div class="glass-dark rounded-3xl p-2 flex items-center justify-around shadow-2xl border border-white/10">
-            <button onclick="switchTab('links')" id="nav-links" class="flex flex-col items-center py-1.5 px-4 rounded-2xl text-indigo-400 transition">
-                <i class="fa-solid fa-address-card text-base mb-0.5"></i>
-                <span class="text-[10px] font-semibold">Links & Bio</span>
-            </button>
-            <button onclick="switchTab('posts')" id="nav-posts" class="flex flex-col items-center py-1.5 px-4 rounded-2xl text-slate-400 hover:text-white transition">
-                <i class="fa-solid fa-layer-group text-base mb-0.5"></i>
-                <span class="text-[10px] font-semibold">Feed Posts</span>
-            </button>
-            <button onclick="switchTab('chat')" id="nav-chat" class="flex flex-col items-center py-1.5 px-4 rounded-2xl text-slate-400 hover:text-white transition relative">
-                <i class="fa-solid fa-comments text-base mb-0.5"></i>
-                <span class="text-[10px] font-semibold">Chat</span>
-                <span id="chatBadge" class="absolute top-1 right-3 w-2 h-2 rounded-full bg-pink-500 hidden"></span>
-            </button>
-        </div>
-    </nav>
-
-    <!-- Lightbox Modal -->
-    <div id="lightboxModal" class="fixed inset-0 z-[9999] bg-black/90 backdrop-blur-md hidden flex items-center justify-center p-4">
-        <button onclick="closeLightbox()" class="absolute top-6 right-6 text-white text-2xl p-2 bg-white/10 rounded-full hover:bg-white/20 transition w-10 h-10 flex items-center justify-center">&times;</button>
-        <div class="relative max-w-3xl max-h-[85vh] overflow-auto">
-            <img id="lightboxImg" src="" class="max-w-full max-h-[80vh] object-contain rounded-2xl shadow-2xl transition-transform duration-200 cursor-zoom-in" onclick="toggleZoom(this)">
-        </div>
+      <!-- Social Icons -->
+      <div class="flex justify-center items-center space-x-3 pt-2 border-t border-gray-800/80">
+        <a id="social-github" href="#" target="_blank" class="w-9 h-9 rounded-xl bg-gray-800/80 flex items-center justify-center text-gray-300 hover:text-white hover:bg-gray-700 transition"><i class="fa-brands fa-github"></i></a>
+        <a id="social-twitter" href="#" target="_blank" class="w-9 h-9 rounded-xl bg-gray-800/80 flex items-center justify-center text-gray-300 hover:text-white hover:bg-gray-700 transition"><i class="fa-brands fa-x-twitter"></i></a>
+        <a id="social-instagram" href="#" target="_blank" class="w-9 h-9 rounded-xl bg-gray-800/80 flex items-center justify-center text-gray-300 hover:text-white hover:bg-gray-700 transition"><i class="fa-brands fa-instagram"></i></a>
+        <a id="social-email" href="#" class="w-9 h-9 rounded-xl bg-gray-800/80 flex items-center justify-center text-gray-300 hover:text-white hover:bg-gray-700 transition"><i class="fa-solid fa-envelope"></i></a>
+      </div>
     </div>
 
-    <!-- Cropper Modal with Aspect Ratio Selector -->
-    <div id="cropperModal" class="fixed inset-0 z-[9999] bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4">
-        <div class="glass-dark p-5 rounded-3xl max-w-sm w-full space-y-3">
-            <div class="flex items-center justify-between">
-                <h3 class="font-bold text-sm text-white" id="cropperModalTitle">Crop Image</h3>
-                <button onclick="closeCropperModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white flex items-center justify-center transition text-sm">&times;</button>
-            </div>
-
-            <!-- Aspect Ratio Selector Buttons -->
-            <div class="flex items-center justify-between bg-white/5 p-1.5 rounded-xl border border-white/10 text-[11px]">
-                <button onclick="changeAspectRatio(1)" class="px-2.5 py-1 rounded-lg bg-indigo-600 text-white font-medium transition aspect-btn" data-ratio="1">1:1</button>
-                <button onclick="changeAspectRatio(16/9)" class="px-2.5 py-1 rounded-lg bg-white/10 text-slate-300 font-medium hover:bg-white/20 transition aspect-btn" data-ratio="1.7777">16:9</button>
-                <button onclick="changeAspectRatio(4/3)" class="px-2.5 py-1 rounded-lg bg-white/10 text-slate-300 font-medium hover:bg-white/20 transition aspect-btn" data-ratio="1.3333">4:3</button>
-                <button onclick="changeAspectRatio(NaN)" class="px-2.5 py-1 rounded-lg bg-white/10 text-slate-300 font-medium hover:bg-white/20 transition aspect-btn" data-ratio="NaN">Free</button>
-            </div>
-
-            <div class="w-full h-56 bg-slate-900 rounded-2xl overflow-hidden">
-                <img id="cropperImageTarget" src="" class="max-w-full">
-            </div>
-
-            <div class="flex space-x-2 pt-1">
-                <button onclick="closeCropperModal()" class="flex-1 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-xs text-white font-medium">Cancel</button>
-                <button onclick="saveCroppedImage()" class="flex-1 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs text-white font-semibold">Crop & Save</button>
-            </div>
-        </div>
+    <!-- Links List -->
+    <div id="links-container" class="space-y-3">
+      <!-- Dynamic Links Injected Here -->
     </div>
 
-    <!-- Map Modal -->
-    <div id="mapModal" class="fixed inset-0 z-[9999] bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4">
-        <div class="glass-dark p-5 rounded-3xl max-w-md w-full space-y-4">
-            <div class="flex items-center justify-between">
-                <h3 class="font-bold text-sm text-white">Select Location</h3>
-                <button onclick="closeMapModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white flex items-center justify-center transition text-sm">&times;</button>
-            </div>
-            <!-- Map Container -->
-            <div id="leafletMap" class="w-full h-72 rounded-2xl overflow-hidden border border-white/10"></div>
-            
-            <div class="flex items-center justify-between pt-1">
-                <button onclick="setOurLocationPin()" class="px-3 py-2 rounded-xl bg-pink-600/30 hover:bg-pink-600/50 text-pink-300 text-xs font-semibold border border-pink-500/30 transition flex items-center space-x-1.5">
-                    <span>📍 Our Location</span>
-                </button>
-                <div class="flex space-x-2">
-                    <button onclick="closeMapModal()" class="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-xs text-white font-medium">Cancel</button>
-                    <button onclick="saveSelectedLocation()" id="saveLocBtn" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs text-white font-semibold hidden">Save Location</button>
-                </div>
-            </div>
-        </div>
+    <!-- Owner Edit Action Buttons -->
+    <div class="owner-only hidden space-y-2 pt-2">
+      <button id="btn-add-link" class="w-full py-3 px-4 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm flex items-center justify-center space-x-2 transition shadow-lg">
+        <i class="fa-solid fa-plus"></i>
+        <span>Add New Link</span>
+      </button>
+
+      <button id="btn-edit-profile" class="w-full py-3 px-4 rounded-2xl bg-gray-800 hover:bg-gray-700 text-gray-200 font-semibold text-sm flex items-center justify-center space-x-2 transition border border-gray-700/60">
+        <i class="fa-solid fa-user-pen"></i>
+        <span>Edit Profile Info & Location</span>
+      </button>
     </div>
 
-    <!-- Custom Background Picker Modal -->
-    <div id="bgModal" class="fixed inset-0 z-[9999] bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4">
-        <div class="glass-dark p-6 rounded-3xl max-w-sm w-full space-y-4">
-            <div class="flex items-center justify-between">
-                <h3 class="font-bold text-sm text-white">Customize Global Background</h3>
-                <button onclick="toggleBgModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white flex items-center justify-center transition text-sm">&times;</button>
-            </div>
-            
-            <div class="space-y-3 text-xs">
-                <!-- Background Blur Intensity Slider -->
-                <div class="bg-white/5 p-3 rounded-2xl border border-white/10 space-y-2">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center space-x-2">
-                            <i class="fa-solid fa-wand-magic-sparkles text-indigo-400"></i>
-                            <span class="text-slate-200 font-medium">Background Blur Intensity</span>
-                        </div>
-                        <span id="blurValueLabel" class="text-indigo-300 font-bold">12px</span>
-                    </div>
-                    <input type="range" id="blurSlider" min="0" max="30" value="12" step="1" oninput="updateBackgroundBlur(this.value)" class="w-full accent-indigo-500 cursor-pointer">
-                </div>
+  </div>
 
-                <div>
-                    <label class="text-slate-300 block mb-1">Preset Themes</label>
-                    <div class="grid grid-cols-3 gap-2">
-                        <button onclick="setBg('linear-gradient(to bottom right, #0f172a, #311042)', 'dark')" class="p-2 rounded-xl bg-slate-900 border border-white/10 text-white font-medium hover:border-indigo-500">Dark Neon</button>
-                        <button onclick="setBg('linear-gradient(to bottom right, #1e293b, #0f766e)', 'dark')" class="p-2 rounded-xl bg-teal-950 border border-white/10 text-white font-medium hover:border-indigo-500">Emerald</button>
-                        <button onclick="setBg('linear-gradient(to bottom right, #f8fafc, #cbd5e1)', 'light')" class="p-2 rounded-xl bg-slate-100 border border-slate-300 text-slate-900 font-medium hover:border-indigo-500">Clean Light</button>
-                    </div>
-                </div>
-
-                <div>
-                    <label class="text-slate-300 block mb-1">Upload Background Photo from Device</label>
-                    <input type="file" accept="image/*" onchange="handleDeviceBgUpload(event)" class="w-full bg-white/10 border border-white/10 rounded-xl px-3 py-2 text-white file:mr-4 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-500 cursor-pointer">
-                </div>
-
-                <div>
-                    <label class="text-slate-300 block mb-1">Custom Image URL</label>
-                    <div class="flex space-x-2">
-                        <input type="text" id="bgImageUrl" placeholder="https://example.com/image.jpg" class="flex-1 bg-white/10 border border-white/10 rounded-xl px-3 py-2 text-white placeholder-slate-400 focus:outline-none focus:border-indigo-500">
-                        <button onclick="applyImageBg()" class="px-3 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold">Apply</button>
-                    </div>
-                </div>
-            </div>
-
-            <button onclick="toggleBgModal()" class="w-full py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-xs text-white font-medium">Close</button>
-        </div>
+  <!-- MODAL: Password Prompt -->
+  <div id="modal-password" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="glass-card rounded-3xl max-w-sm w-full p-6 relative space-y-4">
+      <button class="btn-close-modal absolute top-4 right-4 text-gray-400 hover:text-white p-1">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+      <h3 class="text-lg font-bold text-white flex items-center space-x-2">
+        <i class="fa-solid fa-lock text-indigo-400"></i>
+        <span>Enter Owner Password</span>
+      </h3>
+      <p class="text-xs text-gray-400">Default password is <code class="bg-gray-800 px-1 py-0.5 rounded text-indigo-300">dilan11</code></p>
+      <input type="password" id="input-password" placeholder="Enter password" class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-xl text-sm text-white focus:outline-none focus:border-indigo-500">
+      <p id="password-error" class="text-xs text-red-400 hidden">Incorrect password. Please try again.</p>
+      <div class="flex space-x-2 pt-2">
+        <button id="btn-cancel-password" class="w-1/2 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-xl text-xs font-semibold">Cancel</button>
+        <button id="btn-submit-password" class="w-1/2 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold">Unlock</button>
+      </div>
     </div>
+  </div>
 
-    <!-- Edit Profile Modal -->
-    <div id="profileEditModal" class="fixed inset-0 z-[9999] bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4">
-        <div class="glass-dark p-6 rounded-3xl max-w-sm w-full space-y-4">
-            <div class="flex items-center justify-between">
-                <h3 class="font-bold text-sm text-white">Edit Profile Info</h3>
-                <button onclick="closeProfileEditModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white flex items-center justify-center transition text-sm">&times;</button>
-            </div>
-            <div class="space-y-3 text-xs">
-                <div>
-                    <label class="text-slate-300 block mb-1">Name</label>
-                    <input type="text" id="editNameInput" class="w-full bg-white/10 border border-white/10 rounded-xl px-3 py-2 text-white">
-                </div>
-                <div>
-                    <label class="text-slate-300 block mb-1">Bio</label>
-                    <textarea id="editBioInput" rows="3" class="w-full bg-white/10 border border-white/10 rounded-xl px-3 py-2 text-white"></textarea>
-                </div>
-            </div>
-            <div class="flex space-x-2">
-                <button onclick="closeProfileEditModal()" class="flex-1 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-xs text-white">Cancel</button>
-                <button onclick="saveProfileInfo()" class="flex-1 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs text-white font-semibold">Save</button>
-            </div>
+  <!-- MODAL: Background Blur Settings -->
+  <div id="modal-blur" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="glass-card rounded-3xl max-w-sm w-full p-6 relative space-y-4">
+      <button class="btn-close-modal absolute top-4 right-4 text-gray-400 hover:text-white p-1">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+      <h3 class="text-lg font-bold text-white flex items-center space-x-2">
+        <i class="fa-solid fa-sliders text-indigo-400"></i>
+        <span>Customize Background</span>
+      </h3>
+      <div class="space-y-3">
+        <div>
+          <div class="flex justify-between text-xs text-gray-300 mb-1">
+            <span>Blur Intensity</span>
+            <span id="val-blur">20px</span>
+          </div>
+          <input type="range" id="slider-blur" min="0" max="50" value="20" class="w-full accent-indigo-500">
         </div>
-    </div>
-
-    <!-- Add/Edit Link Modal (Optional Fields) -->
-    <div id="linkModal" class="fixed inset-0 z-[9999] bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4">
-        <div class="glass-dark p-6 rounded-3xl max-w-sm w-full space-y-4">
-            <div class="flex items-center justify-between">
-                <h3 class="font-bold text-sm text-white" id="linkModalTitle">Add Link</h3>
-                <button onclick="closeLinkModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white flex items-center justify-center transition text-sm">&times;</button>
-            </div>
-            <input type="hidden" id="editLinkIndex" value="-1">
-            <div class="space-y-3 text-xs">
-                <div>
-                    <label class="text-slate-300 block mb-1">Title (Optional)</label>
-                    <input type="text" id="linkTitleInput" placeholder="e.g. My Portfolio Website" class="w-full bg-white/10 border border-white/10 rounded-xl px-3 py-2 text-white">
-                </div>
-                <div>
-                    <label class="text-slate-300 block mb-1">URL (Optional)</label>
-                    <input type="text" id="linkUrlInput" placeholder="https://..." class="w-full bg-white/10 border border-white/10 rounded-xl px-3 py-2 text-white">
-                </div>
-                <div>
-                    <label class="text-slate-300 block mb-1">Icon (Optional)</label>
-                    <input type="text" id="linkIconInput" placeholder="fa-solid fa-globe" class="w-full bg-white/10 border border-white/10 rounded-xl px-3 py-2 text-white">
-                </div>
-            </div>
-            <div class="flex space-x-2">
-                <button onclick="closeLinkModal()" class="flex-1 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-xs text-white">Cancel</button>
-                <button onclick="saveLinkItem()" class="flex-1 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs text-white font-semibold">Save Link</button>
-            </div>
+        <div>
+          <div class="flex justify-between text-xs text-gray-300 mb-1">
+            <span>Opacity</span>
+            <span id="val-opacity">50%</span>
+          </div>
+          <input type="range" id="slider-opacity" min="0" max="100" value="50" class="w-full accent-indigo-500">
         </div>
+      </div>
+      <button class="btn-close-modal w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold">Done</button>
     </div>
+  </div>
 
-    <!-- Add Post Modal (Optional Fields) -->
-    <div id="postModal" class="fixed inset-0 z-[9999] bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4">
-        <div class="glass-dark p-6 rounded-3xl max-w-sm w-full space-y-4">
-            <div class="flex items-center justify-between">
-                <h3 class="font-bold text-sm text-white">Create New Post</h3>
-                <button onclick="closePostModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white flex items-center justify-center transition text-sm">&times;</button>
-            </div>
-            <div class="space-y-3 text-xs">
-                <div>
-                    <label class="text-slate-300 block mb-1">Caption (Optional)</label>
-                    <textarea id="postCaptionInput" rows="3" placeholder="What's new?" class="w-full bg-white/10 border border-white/10 rounded-xl px-3 py-2 text-white"></textarea>
-                </div>
-                <div>
-                    <label class="text-slate-300 block mb-1">Upload Photo from Device (Optional)</label>
-                    <input type="file" id="postImageFileInput" accept="image/*" onchange="handlePostImageUpload(event)" class="w-full bg-white/10 border border-white/10 rounded-xl px-3 py-2 text-white file:mr-4 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-500 cursor-pointer">
-                </div>
-                <div>
-                    <label class="text-slate-300 block mb-1">Resolution / Target Max Width</label>
-                    <select id="postResolutionSelect" class="w-full bg-slate-800 border border-white/10 rounded-xl px-3 py-2 text-white outline-none">
-                        <option value="800">HD (800px Width)</option>
-                        <option value="1200" selected>Full HD (1200px Width)</option>
-                        <option value="600">Compact (600px Width)</option>
-                    </select>
-                </div>
-                <div id="postImagePreviewContainer" class="hidden relative">
-                    <img id="postImagePreviewImg" src="" class="w-full h-32 object-cover rounded-xl border border-white/20">
-                    <button onclick="removePostImage()" class="absolute top-2 right-2 bg-rose-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs">&times;</button>
-                </div>
-            </div>
-            <div class="flex space-x-2">
-                <button onclick="closePostModal()" class="flex-1 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-xs text-white">Cancel</button>
-                <button onclick="saveNewPost()" class="flex-1 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs text-white font-semibold">Publish</button>
-            </div>
+  <!-- MODAL: Profile Info Editor -->
+  <div id="modal-profile" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="glass-card rounded-3xl max-w-md w-full p-6 relative space-y-4 max-h-[90vh] overflow-y-auto">
+      <button class="btn-close-modal absolute top-4 right-4 text-gray-400 hover:text-white p-1">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+      <h3 class="text-lg font-bold text-white">Edit Profile Info</h3>
+      
+      <div class="space-y-3">
+        <div>
+          <label class="block text-xs text-gray-400 mb-1">Full Name</label>
+          <input type="text" id="edit-name" class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-xl text-sm text-white focus:outline-none focus:border-indigo-500">
         </div>
+        <div>
+          <label class="block text-xs text-gray-400 mb-1">Tagline / Subtitle</label>
+          <input type="text" id="edit-title" class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-xl text-sm text-white focus:outline-none focus:border-indigo-500">
+        </div>
+        <div>
+          <label class="block text-xs text-gray-400 mb-1">Bio Description</label>
+          <textarea id="edit-bio" rows="3" class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-xl text-sm text-white focus:outline-none focus:border-indigo-500"></textarea>
+        </div>
+        <div>
+          <label class="block text-xs text-gray-400 mb-1">Location</label>
+          <input type="text" id="edit-location" class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-xl text-sm text-white focus:outline-none focus:border-indigo-500">
+        </div>
+        <div>
+          <label class="block text-xs text-gray-400 mb-1">Set Owner Password</label>
+          <input type="password" id="edit-owner-password" placeholder="Leave empty to keep current" class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-xl text-sm text-white focus:outline-none focus:border-indigo-500">
+        </div>
+      </div>
+
+      <div class="flex space-x-2 pt-2">
+        <button class="btn-close-modal w-1/2 py-2.5 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-xl text-xs font-semibold">Cancel</button>
+        <button id="btn-save-profile" class="w-1/2 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold">Save Changes</button>
+      </div>
     </div>
+  </div>
 
-    <!-- JavaScript Application Logic -->
-    <script>
-        // State Management
-        let isOwnerMode = false;
-        let currentTab = 'links';
-        let currentVisitorName = localStorage.getItem('bioVisitorName') || null;
-        let currentClientId = localStorage.getItem('bioVisitorId') || null;
-        let chatAttachmentBase64 = null;
-        let postImageBase64 = null;
-        let cropperInstance = null;
-        let cropperTargetType = 'avatar';
-        let leafletMap = null;
-        let mapMarker = null;
-        let selectedLat = 37.7749;
-        let selectedLng = -122.4194;
+  <!-- MODAL: Add / Edit Link -->
+  <div id="modal-link" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="glass-card rounded-3xl max-w-md w-full p-6 relative space-y-4">
+      <button class="btn-close-modal absolute top-4 right-4 text-gray-400 hover:text-white p-1">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+      <h3 id="modal-link-title" class="text-lg font-bold text-white">Add New Link</h3>
+      
+      <div class="space-y-3">
+        <div>
+          <label class="block text-xs text-gray-400 mb-1">Title</label>
+          <input type="text" id="link-title-input" placeholder="e.g. My Portfolio" class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-xl text-sm text-white focus:outline-none focus:border-indigo-500">
+        </div>
+        <div>
+          <label class="block text-xs text-gray-400 mb-1">URL</label>
+          <input type="url" id="link-url-input" placeholder="https://example.com" class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-xl text-sm text-white focus:outline-none focus:border-indigo-500">
+        </div>
+        <div>
+          <label class="block text-xs text-gray-400 mb-1">Icon (FontAwesome Class)</label>
+          <input type="text" id="link-icon-input" placeholder="fa-globe, fa-calendar, fa-newspaper" class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-xl text-sm text-white focus:outline-none focus:border-indigo-500">
+        </div>
+      </div>
 
-        // Default Data
-        const defaultData = {
-            name: "Alex Rivera",
-            bio: "Building immersive web experiences, design systems, and digital art. Let's collaborate!",
-            avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
-            location: "San Francisco, CA",
-            bgStyle: "linear-gradient(to bottom right, #0f172a, #311042)",
-            theme: "dark",
-            blurIntensity: 12,
-            links: [
-                { title: "Explore My Portfolio", url: "https://example.com", icon: "fa-solid fa-globe" },
-                { title: "Book a 1on1 Consultation", url: "https://example.com", icon: "fa-solid fa-calendar" },
-                { title: "Read My Recent Articles", url: "https://example.com", icon: "fa-solid fa-newspaper" }
-            ],
-            posts: [
-                { id: 1, caption: "Just shipped a brand new design system with glassmorphic cards! 🚀", image: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=600&q=80", likes: 24, timestamp: "2h ago" },
-                { id: 2, caption: "Exploring creative coding and interactive shaders today.", image: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=600&q=80", likes: 42, timestamp: "Yesterday" }
-            ],
-            chats: {}
+      <div class="flex space-x-2 pt-2">
+        <button class="btn-close-modal w-1/2 py-2.5 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-xl text-xs font-semibold">Cancel</button>
+        <button id="btn-save-link" class="w-1/2 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold">Save Link</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Image Upload & Crop -->
+  <div id="modal-crop" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="glass-card rounded-3xl max-w-md w-full p-6 relative space-y-4">
+      <button class="btn-close-modal absolute top-4 right-4 text-gray-400 hover:text-white p-1">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+      <h3 class="text-lg font-bold text-white">Crop Profile Picture</h3>
+      
+      <div>
+        <input type="file" id="input-image-file" accept="image/*" class="block w-full text-xs text-gray-400 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-500">
+      </div>
+
+      <div class="img-cropper-container rounded-2xl overflow-hidden bg-gray-900 flex items-center justify-center border border-gray-700">
+        <img id="cropper-target" class="max-w-full hidden" src="">
+      </div>
+
+      <div class="flex space-x-2 pt-2">
+        <button class="btn-close-modal w-1/2 py-2.5 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-xl text-xs font-semibold">Cancel</button>
+        <button id="btn-crop-save" class="w-1/2 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold">Save Avatar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cropper.js Script -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+  
+  <!-- JavaScript Logic -->
+  <script>
+    // State Data
+    let isOwnerMode = false;
+    let editingLinkId = null;
+    let cropper = null;
+    let ownerPassword = localStorage.getItem('dilan_owner_pass') || 'dilan11';
+
+    let appData = JSON.parse(localStorage.getItem('dilan_bio_data')) || {
+      profile: {
+        name: "Alex Rivera",
+        title: "Digital Creator & Dev",
+        bio: "Building immersive web experiences, design systems, and digital art. Let's collaborate!",
+        location: "San Francisco, CA",
+        avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80"
+      },
+      blur: { intensity: 20, opacity: 50 },
+      links: [
+        { id: '1', title: "Explore My Portfolio", url: "#", icon: "fa-globe" },
+        { id: '2', title: "Book a 1on1 Consultation", url: "#", icon: "fa-calendar" },
+        { id: '3', title: "Read My Recent Articles", url: "#", icon: "fa-newspaper" }
+      ]
+    };
+
+    // DOM Elements
+    const btnToggleMode = document.getElementById('btn-toggle-mode');
+    const modeText = document.getElementById('mode-text');
+    const modeIcon = document.getElementById('mode-icon');
+    const ownerElements = document.querySelectorAll('.owner-only');
+
+    const modalPassword = document.getElementById('modal-password');
+    const inputPassword = document.getElementById('input-password');
+    const passwordError = document.getElementById('password-error');
+    const btnSubmitPassword = document.getElementById('btn-submit-password');
+    const btnCancelPassword = document.getElementById('btn-cancel-password');
+
+    // Render Data
+    function render() {
+      // Profile render
+      document.getElementById('profile-name').textContent = appData.profile.name;
+      document.getElementById('header-name').textContent = appData.profile.name;
+      document.getElementById('header-title').textContent = appData.profile.title;
+      document.getElementById('profile-bio').textContent = appData.profile.bio;
+      document.getElementById('profile-location').textContent = appData.profile.location;
+      document.getElementById('profile-img').src = appData.profile.avatar;
+      document.getElementById('header-avatar-badge').textContent = appData.profile.name.charAt(0);
+
+      // Blur render
+      const bgBlur = document.getElementById('bg-blur');
+      bgBlur.style.filter = `blur(${appData.blur.intensity}px)`;
+      bgBlur.style.opacity = appData.blur.opacity / 100;
+      document.getElementById('slider-blur').value = appData.blur.intensity;
+      document.getElementById('val-blur').textContent = appData.blur.intensity + 'px';
+      document.getElementById('slider-opacity').value = appData.blur.opacity;
+      document.getElementById('val-opacity').textContent = appData.blur.opacity + '%';
+
+      // Links render
+      const linksContainer = document.getElementById('links-container');
+      linksContainer.innerHTML = '';
+
+      appData.links.forEach(link => {
+        const linkEl = document.createElement('div');
+        linkEl.className = "glass-card rounded-2xl p-4 flex items-center justify-between shadow-md hover:border-indigo-500/50 transition group";
+        
+        linkEl.innerHTML = `
+          <a href="${link.url}" target="_blank" class="flex items-center space-x-3 flex-1 overflow-hidden">
+            <div class="w-10 h-10 rounded-xl bg-gray-800/80 flex items-center justify-center text-indigo-400 group-hover:bg-indigo-600 group-hover:text-white transition">
+              <i class="fa-solid ${link.icon || 'fa-link'}"></i>
+            </div>
+            <span class="font-semibold text-sm text-gray-100 truncate">${link.title}</span>
+          </a>
+          ${isOwnerMode ? `
+            <div class="flex items-center space-x-1 ml-2">
+              <button onclick="openEditLinkModal('${link.id}')" class="p-2 text-gray-400 hover:text-indigo-400 transition"><i class="fa-solid fa-pencil text-xs"></i></button>
+              <button onclick="deleteLink('${link.id}')" class="p-2 text-gray-400 hover:text-red-400 transition"><i class="fa-solid fa-trash text-xs"></i></button>
+            </div>
+          ` : ''}
+        `;
+        linksContainer.appendChild(linkEl);
+      });
+
+      // Update Mode UI
+      if (isOwnerMode) {
+        modeText.textContent = "Owner Mode";
+        modeIcon.className = "fa-solid fa-user-gear";
+        btnToggleMode.className = "px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold flex items-center space-x-1.5 transition";
+        ownerElements.forEach(el => el.classList.remove('hidden'));
+      } else {
+        modeText.textContent = "Client Mode";
+        modeIcon.className = "fa-solid fa-user-lock";
+        btnToggleMode.className = "px-3 py-1.5 rounded-xl bg-indigo-600/80 hover:bg-indigo-600 text-white text-xs font-semibold flex items-center space-x-1.5 transition";
+        ownerElements.forEach(el => el.classList.add('hidden'));
+      }
+
+      // Save Local
+      localStorage.setItem('dilan_bio_data', JSON.stringify(appData));
+    }
+
+    // Toggle Owner Mode logic with Password
+    btnToggleMode.addEventListener('click', () => {
+      if (isOwnerMode) {
+        isOwnerMode = false;
+        render();
+      } else {
+        modalPassword.classList.remove('hidden');
+        inputPassword.value = '';
+        passwordError.classList.add('hidden');
+        inputPassword.focus();
+      }
+    });
+
+    btnSubmitPassword.addEventListener('click', () => {
+      if (inputPassword.value === ownerPassword) {
+        isOwnerMode = true;
+        modalPassword.classList.add('hidden');
+        render();
+      } else {
+        passwordError.classList.remove('hidden');
+      }
+    });
+
+    btnCancelPassword.addEventListener('click', () => {
+      modalPassword.classList.add('hidden');
+    });
+
+    // Close Modals logic
+    document.querySelectorAll('.btn-close-modal').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.fixed').forEach(m => m.classList.add('hidden'));
+        if (cropper) { cropper.destroy(); cropper = null; }
+      });
+    });
+
+    // Blur Sliders
+    document.getElementById('btn-open-blur').addEventListener('click', () => {
+      document.getElementById('modal-blur').classList.remove('hidden');
+    });
+    document.getElementById('slider-blur').addEventListener('input', (e) => {
+      appData.blur.intensity = e.target.value;
+      render();
+    });
+    document.getElementById('slider-opacity').addEventListener('input', (e) => {
+      appData.blur.opacity = e.target.value;
+      render();
+    });
+
+    // Profile Editor
+    document.getElementById('btn-edit-profile').addEventListener('click', () => {
+      document.getElementById('edit-name').value = appData.profile.name;
+      document.getElementById('edit-title').value = appData.profile.title;
+      document.getElementById('edit-bio').value = appData.profile.bio;
+      document.getElementById('edit-location').value = appData.profile.location;
+      document.getElementById('edit-owner-password').value = '';
+      document.getElementById('modal-profile').classList.remove('hidden');
+    });
+
+    document.getElementById('btn-save-profile').addEventListener('click', () => {
+      appData.profile.name = document.getElementById('edit-name').value;
+      appData.profile.title = document.getElementById('edit-title').value;
+      appData.profile.bio = document.getElementById('edit-bio').value;
+      appData.profile.location = document.getElementById('edit-location').value;
+      
+      const newPass = document.getElementById('edit-owner-password').value;
+      if (newPass.trim() !== '') {
+        ownerPassword = newPass.trim();
+        localStorage.setItem('dilan_owner_pass', ownerPassword);
+      }
+
+      document.getElementById('modal-profile').classList.add('hidden');
+      render();
+    });
+
+    // Link Management
+    document.getElementById('btn-add-link').addEventListener('click', () => {
+      editingLinkId = null;
+      document.getElementById('modal-link-title').textContent = "Add New Link";
+      document.getElementById('link-title-input').value = '';
+      document.getElementById('link-url-input').value = '';
+      document.getElementById('link-icon-input').value = 'fa-link';
+      document.getElementById('modal-link').classList.remove('hidden');
+    });
+
+    window.openEditLinkModal = function(id) {
+      editingLinkId = id;
+      const link = appData.links.find(l => l.id === id);
+      if (link) {
+        document.getElementById('modal-link-title').textContent = "Edit Link";
+        document.getElementById('link-title-input').value = link.title;
+        document.getElementById('link-url-input').value = link.url;
+        document.getElementById('link-icon-input').value = link.icon;
+        document.getElementById('modal-link').classList.remove('hidden');
+      }
+    };
+
+    document.getElementById('btn-save-link').addEventListener('click', () => {
+      const title = document.getElementById('link-title-input').value;
+      const url = document.getElementById('link-url-input').value;
+      const icon = document.getElementById('link-icon-input').value;
+
+      if (!title || !url) return;
+
+      if (editingLinkId) {
+        const link = appData.links.find(l => l.id === editingLinkId);
+        if (link) {
+          link.title = title;
+          link.url = url;
+          link.icon = icon;
+        }
+      } else {
+        appData.links.push({ id: Date.now().toString(), title, url, icon });
+      }
+
+      document.getElementById('modal-link').classList.add('hidden');
+      render();
+    });
+
+    window.deleteLink = function(id) {
+      appData.links = appData.links.filter(l => l.id !== id);
+      render();
+    };
+
+    // Avatar Cropper
+    document.getElementById('btn-change-avatar').addEventListener('click', () => {
+      document.getElementById('modal-crop').classList.remove('hidden');
+    });
+
+    document.getElementById('input-image-file').addEventListener('change', function(e) {
+      const files = e.target.files;
+      if (files && files.length > 0) {
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+          const targetImg = document.getElementById('cropper-target');
+          targetImg.src = evt.target.result;
+          targetImg.classList.remove('hidden');
+
+          if (cropper) cropper.destroy();
+          cropper = new Cropper(targetImg, {
+            aspectRatio: 1,
+            viewMode: 1
+          });
         };
+        reader.readAsDataURL(files[0]);
+      }
+    });
 
-        let appData = JSON.parse(localStorage.getItem('bioPortfolioData')) || defaultData;
-        if(!appData.chats) appData.chats = {};
-        if(appData.blurIntensity === undefined) appData.blurIntensity = 12;
+    document.getElementById('btn-crop-save').addEventListener('click', () => {
+      if (cropper) {
+        const canvas = cropper.getCroppedCanvas({ width: 300, height: 300 });
+        appData.profile.avatar = canvas.toDataURL();
+        cropper.destroy();
+        cropper = null;
+      }
+      document.getElementById('modal-crop').classList.add('hidden');
+      render();
+    });
 
-        function saveData() {
-            localStorage.setItem('bioPortfolioData', JSON.stringify(appData));
-        }
-
-        window.onload = function() {
-            renderAll();
-        };
-
-        function renderAll() {
-            document.getElementById('headerProfileName').innerText = appData.name;
-            document.getElementById('profileTitle').innerText = appData.name;
-            document.getElementById('profileBio').innerText = appData.bio;
-            
-            var avatarImg = document.getElementById('profileAvatarImg');
-            if (avatarImg && appData.avatar) {
-                avatarImg.src = appData.avatar;
-            }
-
-            document.getElementById('locationText').innerText = appData.location;
-            
-            const body = document.getElementById('mainBody');
-            body.style.background = appData.bgStyle;
-            body.style.backgroundAttachment = 'fixed';
-            body.style.backgroundSize = 'cover';
-
-            body.style.backdropFilter = 'blur(' + appData.blurIntensity + 'px)';
-            body.style.webkitBackdropFilter = 'blur(' + appData.blurIntensity + 'px)';
-
-            var slider = document.getElementById('blurSlider');
-            if(slider) {
-                slider.value = appData.blurIntensity;
-            }
-            var label = document.getElementById('blurValueLabel');
-            if(label) {
-                label.innerText = appData.blurIntensity + 'px';
-            }
-
-            renderLinks();
-            renderPosts();
-            renderChatInterface();
-        }
-
-        function updateBackgroundBlur(val) {
-            appData.blurIntensity = parseInt(val) || 0;
-            saveData();
-            renderAll();
-        }
-
-        function switchTab(tabId) {
-            currentTab = tabId;
-            ['links', 'posts', 'chat'].forEach(function(t) {
-                document.getElementById('tab-' + t).classList.add('hidden');
-                document.getElementById('nav-' + t).classList.remove('text-indigo-400');
-                document.getElementById('nav-' + t).classList.add('text-slate-400');
-            });
-            document.getElementById('tab-' + tabId).classList.remove('hidden');
-            document.getElementById('nav-' + tabId).classList.remove('text-slate-400');
-            document.getElementById('nav-' + tabId).classList.add('text-indigo-400');
-            
-            if(tabId === 'chat') {
-                document.getElementById('chatBadge').classList.add('hidden');
-            }
-        }
-
-        function toggleMode() {
-            isOwnerMode = !isOwnerMode;
-            var btnText = document.getElementById('modeText');
-            var editAvatarBtn = document.getElementById('editAvatarBtn');
-            var ownerLinkControls = document.getElementById('ownerLinkControls');
-            var ownerPostBtn = document.getElementById('ownerPostBtn');
-            var bgCustomizeBtn = document.getElementById('bgCustomizeBtn');
-
-            if(isOwnerMode) {
-                btnText.innerText = "Owner Mode";
-                document.getElementById('modeToggleBtn').classList.replace('bg-indigo-600', 'bg-pink-600');
-                editAvatarBtn.classList.remove('hidden');
-                ownerLinkControls.classList.remove('hidden');
-                ownerPostBtn.classList.remove('hidden');
-                bgCustomizeBtn.classList.remove('hidden');
-                
-                var clientKeys = Object.keys(appData.chats);
-                if(clientKeys.length > 0 && (!currentClientId || !appData.chats[currentClientId])) {
-                    currentClientId = clientKeys[0];
-                }
-            } else {
-                btnText.innerText = "Client Mode";
-                document.getElementById('modeToggleBtn').classList.replace('bg-pink-600', 'bg-indigo-600');
-                editAvatarBtn.classList.add('hidden');
-                ownerLinkControls.classList.add('hidden');
-                ownerPostBtn.classList.add('hidden');
-                bgCustomizeBtn.classList.add('hidden');
-            }
-            renderAll();
-        }
-
-        function renderLinks() {
-            var container = document.getElementById('linksContainer');
-            container.innerHTML = '';
-            appData.links.forEach(function(link, idx) {
-                var card = document.createElement('div');
-                card.className = "glass p-4 rounded-2xl flex items-center justify-between hover:bg-white/20 transition group shadow-lg";
-                card.innerHTML = 
-                    '<div class="flex items-center space-x-3 cursor-pointer flex-1" onclick="window.open(\'' + (link.url || '#') + '\', \'_blank\')">' +
-                        '<div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-indigo-300 group-hover:scale-110 transition shadow">' +
-                            '<i class="' + (link.icon || 'fa-solid fa-globe') + '"></i>' +
-                        '</div>' +
-                        '<span class="font-semibold text-sm text-white">' + (link.title || 'Untitled Link') + '</span>' +
-                    '</div>' +
-                    (isOwnerMode ? 
-                        '<div class="flex space-x-1 pl-2">' +
-                            '<button onclick="editLink(' + idx + ')" class="p-2 text-slate-400 hover:text-white transition"><i class="fa-solid fa-pen text-xs"></i></button>' +
-                            '<button onclick="deleteLink(' + idx + ')" class="p-2 text-slate-400 hover:text-rose-400 transition"><i class="fa-solid fa-trash text-xs"></i></button>' +
-                        '</div>' : 
-                        '<i class="fa-solid fa-chevron-right text-xs text-slate-400 group-hover:translate-x-1 transition"></i>'
-                    );
-                container.appendChild(card);
-            });
-        }
-
-        function renderPosts() {
-            var container = document.getElementById('postsContainer');
-            container.innerHTML = '';
-            appData.posts.forEach(function(post, idx) {
-                var card = document.createElement('div');
-                card.className = "glass rounded-3xl overflow-hidden shadow-2xl";
-                card.innerHTML = 
-                    (post.image ? '<img src="' + post.image + '" class="w-full h-56 object-cover cursor-pointer" onclick="openLightbox(this.src)">' : '') +
-                    '<div class="p-4 space-y-2">' +
-                        '<div class="flex items-center justify-between text-[10px] text-slate-400">' +
-                            '<span>' + post.timestamp + '</span>' +
-                            (isOwnerMode ? '<button onclick="deletePost(' + idx + ')" class="text-rose-400 hover:underline">Delete</button>' : '') +
-                        '</div>' +
-                        (post.caption ? '<p class="text-xs text-slate-200 leading-relaxed">' + post.caption + '</p>' : '') +
-                        '<div class="flex items-center space-x-2 pt-1">' +
-                            '<button onclick="likePost(' + post.id + ')" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-xs text-pink-400 transition">' +
-                                '<i class="fa-solid fa-heart"></i>' +
-                                '<span>' + post.likes + '</span>' +
-                            '</button>' +
-                        '</div>' +
-                    '</div>';
-                container.appendChild(card);
-            });
-        }
-
-        function renderChatInterface() {
-            var nameCard = document.getElementById('clientNameCard');
-            var chatBox = document.getElementById('chatBoxCard');
-            var ownerSelectorWrapper = document.getElementById('ownerClientSelectorWrapper');
-            var changeNameBtn = document.getElementById('changeNameBtn');
-
-            if(isOwnerMode) {
-                nameCard.classList.add('hidden');
-                chatBox.classList.remove('hidden');
-                ownerSelectorWrapper.classList.remove('hidden');
-                changeNameBtn.classList.add('hidden');
-                
-                renderChatClientsDropdown();
-                renderChatMessages();
-            } else {
-                if(!currentVisitorName || !currentClientId) {
-                    nameCard.classList.remove('hidden');
-                    chatBox.classList.add('hidden');
-                } else {
-                    nameCard.classList.add('hidden');
-                    chatBox.classList.remove('hidden');
-                    ownerSelectorWrapper.classList.add('hidden');
-                    changeNameBtn.classList.remove('hidden');
-                    
-                    document.getElementById('chatHeaderTitle').innerText = 'Chat with Alex';
-                    document.getElementById('chatSubHeader').innerText = 'Logged in as: ' + currentVisitorName;
-                    renderChatMessages();
-                }
-            }
-        }
-
-        function registerVisitorName() {
-            var nameInput = document.getElementById('visitorNameInput');
-            var name = nameInput.value.trim() || 'Anonymous Visitor';
-
-            currentVisitorName = name;
-            currentClientId = 'client_' + Date.now();
-            
-            localStorage.setItem('bioVisitorName', currentVisitorName);
-            localStorage.setItem('bioVisitorId', currentClientId);
-
-            if(!appData.chats[currentClientId]) {
-                appData.chats[currentClientId] = {
-                    clientName: currentVisitorName,
-                    messages: [
-                        { sender: 'owner', text: 'Hi ' + currentVisitorName + '! Thanks for reaching out. How can I help you today?', time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), image: null }
-                    ]
-                };
-                saveData();
-            }
-
-            nameInput.value = '';
-            renderChatInterface();
-        }
-
-        function resetVisitorSession() {
-            localStorage.removeItem('bioVisitorName');
-            localStorage.removeItem('bioVisitorId');
-            currentVisitorName = null;
-            currentClientId = null;
-            renderChatInterface();
-        }
-
-        function renderChatClientsDropdown() {
-            var selector = document.getElementById('clientSelector');
-            selector.innerHTML = '';
-            var clientKeys = Object.keys(appData.chats);
-
-            if(clientKeys.length === 0) {
-                var opt = document.createElement('option');
-                opt.value = '';
-                opt.innerText = 'No clients yet';
-                selector.appendChild(opt);
-                return;
-            }
-
-            clientKeys.forEach(function(clientId) {
-                var clientData = appData.chats[clientId];
-                var opt = document.createElement('option');
-                opt.value = clientId;
-                opt.innerText = clientData.clientName || clientId;
-                if(clientId === currentClientId) opt.selected = true;
-                selector.appendChild(opt);
-            });
-
-            if(!currentClientId && clientKeys.length > 0) {
-                currentClientId = clientKeys[0];
-            }
-        }
-
-        function switchClientChat(clientId) {
-            currentClientId = clientId;
-            renderChatMessages();
-        }
-
-        function renderChatMessages() {
-            var container = document.getElementById('chatMessages');
-            container.innerHTML = '';
-            
-            if(!currentClientId || !appData.chats[currentClientId]) return;
-
-            var chatThread = appData.chats[currentClientId].messages || [];
-            chatThread.forEach(function(msg) {
-                var isOwnerMsg = msg.sender === 'owner';
-                var div = document.createElement('div');
-                div.className = 'flex flex-col ' + ((isOwnerMsg && isOwnerMode) || (!isOwnerMode && !isOwnerMsg) ? 'items-end' : 'items-start');
-                
-                div.innerHTML = 
-                    '<div class="max-w-[80%] p-3 rounded-2xl ' + (((isOwnerMode && isOwnerMsg) || (!isOwnerMode && !isOwnerMsg)) ? 'bg-indigo-600 text-white' : 'bg-white/10 text-slate-100') + ' shadow">' +
-                        (msg.image ? '<img src="' + msg.image + '" class="w-full h-32 object-cover rounded-xl mb-2 cursor-pointer" onclick="openLightbox(this.src)">' : '') +
-                        (msg.text ? '<p class="text-xs leading-relaxed">' + msg.text + '</p>' : '') +
-                    '</div>' +
-                    '<span class="text-[9px] text-slate-400 mt-1 px-1">' + msg.time + '</span>';
-                container.appendChild(div);
-            });
-            container.scrollTop = container.scrollHeight;
-        }
-
-        function sendChatMessage() {
-            var input = document.getElementById('chatInput');
-            var text = input.value.trim();
-            if(!text && !chatAttachmentBase64) return;
-            if(!currentClientId) {
-                currentClientId = 'client_' + Date.now();
-                currentVisitorName = currentVisitorName || 'Visitor';
-            }
-
-            if(!appData.chats[currentClientId]) {
-                appData.chats[currentClientId] = { clientName: currentVisitorName, messages: [] };
-            }
-
-            var sender = isOwnerMode ? 'owner' : 'client';
-            var time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-            appData.chats[currentClientId].messages.push({
-                sender: sender,
-                text: text,
-                time: time,
-                image: chatAttachmentBase64
-            });
-
-            input.value = '';
-            chatAttachmentBase64 = null;
-            document.getElementById('chatAttachmentPreview').classList.add('hidden');
-            saveData();
-            renderChatMessages();
-
-            if(!isOwnerMode && currentTab !== 'chat') {
-                document.getElementById('chatBadge').classList.remove('hidden');
-            }
-        }
-
-        function handleChatAttachment(event) {
-            var file = event.target.files[0];
-            if(file) {
-                var reader = new FileReader();
-                reader.onload = function(e) {
-                    chatAttachmentBase64 = e.target.result;
-                    document.getElementById('chatAttachedImg').src = chatAttachmentBase64;
-                    document.getElementById('chatAttachmentPreview').classList.remove('hidden');
-                };
-                reader.readAsDataURL(file);
-            }
-        }
-
-        function removeChatAttachment() {
-            chatAttachmentBase64 = null;
-            document.getElementById('chatAttachmentPreview').classList.add('hidden');
-        }
-
-        function clearChatHistory() {
-            if(currentClientId && appData.chats[currentClientId]) {
-                appData.chats[currentClientId].messages = [];
-                saveData();
-                renderChatMessages();
-            }
-        }
-
-        function openLightbox(src) {
-            document.getElementById('lightboxImg').src = src;
-            document.getElementById('lightboxModal').classList.remove('hidden');
-        }
-        function closeLightbox() {
-            document.getElementById('lightboxModal').classList.add('hidden');
-        }
-        function toggleZoom(img) {
-            img.classList.toggle('scale-125');
-        }
-
-        function handleAvatarDeviceUpload(event) {
-            var file = event.target.files[0];
-            if(file) {
-                var reader = new FileReader();
-                reader.onload = function(e) {
-                    cropperTargetType = 'avatar';
-                    document.getElementById('cropperModalTitle').innerText = "Crop Avatar Image";
-                    var target = document.getElementById('cropperImageTarget');
-                    target.src = e.target.result;
-                    document.getElementById('cropperModal').classList.remove('hidden');
-                    if(cropperInstance) cropperInstance.destroy();
-                    setTimeout(function() {
-                        cropperInstance = new Cropper(target, { aspectRatio: 1, viewMode: 1 });
-                        updateActiveAspectBtn(1);
-                    }, 200);
-                };
-                reader.readAsDataURL(file);
-            }
-        }
-
-        function handleDeviceBgUpload(event) {
-            var file = event.target.files[0];
-            if(file) {
-                var reader = new FileReader();
-                reader.onload = function(e) {
-                    cropperTargetType = 'background';
-                    document.getElementById('cropperModalTitle').innerText = "Crop Background Photo";
-                    var target = document.getElementById('cropperImageTarget');
-                    target.src = e.target.result;
-                    document.getElementById('bgModal').classList.add('hidden');
-                    document.getElementById('cropperModal').classList.remove('hidden');
-                    if(cropperInstance) cropperInstance.destroy();
-                    setTimeout(function() {
-                        cropperInstance = new Cropper(target, { aspectRatio: 16/9, viewMode: 1 });
-                        updateActiveAspectBtn(16/9);
-                    }, 200);
-                };
-                reader.readAsDataURL(file);
-            }
-        }
-
-        function changeAspectRatio(ratio) {
-            if(cropperInstance) {
-                cropperInstance.setAspectRatio(ratio);
-                updateActiveAspectBtn(ratio);
-            }
-        }
-
-        function updateActiveAspectBtn(ratio) {
-            var buttons = document.querySelectorAll('.aspect-btn');
-            buttons.forEach(function(btn) {
-                var val = parseFloat(btn.getAttribute('data-ratio'));
-                if((isNaN(val) && isNaN(ratio)) || Math.abs(val - ratio) < 0.01) {
-                    btn.className = "px-2.5 py-1 rounded-lg bg-indigo-600 text-white font-medium transition aspect-btn";
-                } else {
-                    btn.className = "px-2.5 py-1 rounded-lg bg-white/10 text-slate-300 font-medium hover:bg-white/20 transition aspect-btn";
-                }
-            });
-        }
-
-        function closeCropperModal() {
-            document.getElementById('cropperModal').classList.add('hidden');
-            if(cropperInstance) cropperInstance.destroy();
-        }
-
-        function saveCroppedImage() {
-            if(cropperInstance) {
-                if(cropperTargetType === 'avatar') {
-                    var canvas = cropperInstance.getCroppedCanvas({ width: 300, height: 300 });
-                    appData.avatar = canvas.toDataURL('image/jpeg', 0.9);
-                    saveData();
-                    renderAll();
-                } else if(cropperTargetType === 'background') {
-                    var canvas = cropperInstance.getCroppedCanvas({ width: 1280, height: 720 });
-                    var dataUrl = canvas.toDataURL();
-                    setBg("url('" + dataUrl + "') no-repeat center center fixed", 'dark');
-                } else if(cropperTargetType === 'post') {
-                    var maxWidth = parseInt(document.getElementById('postResolutionSelect').value) || 1200;
-                    var canvas = cropperInstance.getCroppedCanvas({ width: maxWidth });
-                    postImageBase64 = canvas.toDataURL('image/jpeg', 0.9);
-                    document.getElementById('postImagePreviewImg').src = postImageBase64;
-                    document.getElementById('postImagePreviewContainer').classList.remove('hidden');
-                    document.getElementById('postModal').classList.remove('hidden');
-                }
-                closeCropperModal();
-            }
-        }
-
-        function openMapModal() {
-            document.getElementById('mapModal').classList.remove('hidden');
-            if(!leafletMap) {
-                setTimeout(function() {
-                    leafletMap = L.map('leafletMap').setView([selectedLat, selectedLng], 13);
-                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(leafletMap);
-                    mapMarker = L.marker([selectedLat, selectedLng]).addTo(leafletMap);
-                    leafletMap.on('click', function(e) {
-                        selectedLat = e.latlng.lat;
-                        selectedLng = e.latlng.lng;
-                        mapMarker.setLatLng([selectedLat, selectedLng]);
-                        if(isOwnerMode) document.getElementById('saveLocBtn').classList.remove('hidden');
-                    });
-                }, 200);
-            } else {
-                setTimeout(function() { leafletMap.invalidateSize(); }, 200);
-            }
-            if(isOwnerMode) document.getElementById('saveLocBtn').classList.add('hidden');
-        }
-
-        function closeMapModal() {
-            document.getElementById('mapModal').classList.add('hidden');
-        }
-
-        function setOurLocationPin() {
-            selectedLat = 37.7749;
-            selectedLng = -122.4194;
-            if(leafletMap && mapMarker) {
-                leafletMap.setView([selectedLat, selectedLng], 13);
-                mapMarker.setLatLng([selectedLat, selectedLng]);
-            }
-            if(isOwnerMode) {
-                appData.location = "San Francisco, CA";
-                saveData();
-                renderAll();
-                closeMapModal();
-            }
-        }
-
-        function saveSelectedLocation() {
-            appData.location = "Lat: " + selectedLat.toFixed(2) + ", Lng: " + selectedLng.toFixed(2);
-            saveData();
-            renderAll();
-            closeMapModal();
-        }
-
-        function toggleBgModal() {
-            document.getElementById('bgModal').classList.toggle('hidden');
-        }
-
-        function setBg(bgStyle, theme) {
-            appData.bgStyle = bgStyle;
-            appData.theme = theme;
-            saveData();
-            renderAll();
-            if(!document.getElementById('bgModal').classList.contains('hidden')) {
-                toggleBgModal();
-            }
-        }
-
-        function applyImageBg() {
-            var url = document.getElementById('bgImageUrl').value.trim();
-            if(url) {
-                setBg("url('" + url + "') no-repeat center center fixed", 'dark');
-            }
-        }
-
-        function openProfileEditModal() {
-            document.getElementById('editNameInput').value = appData.name;
-            document.getElementById('editBioInput').value = appData.bio;
-            document.getElementById('profileEditModal').classList.remove('hidden');
-        }
-        function closeProfileEditModal() {
-            document.getElementById('profileEditModal').classList.add('hidden');
-        }
-        function saveProfileInfo() {
-            appData.name = document.getElementById('editNameInput').value || appData.name;
-            appData.bio = document.getElementById('editBioInput').value || appData.bio;
-            saveData();
-            renderAll();
-            closeProfileEditModal();
-        }
-
-        function openLinkModal(index) {
-            if(index === undefined) index = -1;
-            document.getElementById('editLinkIndex').value = index;
-            if(index >= 0) {
-                var link = appData.links[index];
-                document.getElementById('linkModalTitle').innerText = "Edit Link";
-                document.getElementById('linkTitleInput').value = link.title || '';
-                document.getElementById('linkUrlInput').value = link.url || '';
-                document.getElementById('linkIconInput').value = link.icon || '';
-            } else {
-                document.getElementById('linkModalTitle').innerText = "Add New Link";
-                document.getElementById('linkTitleInput').value = '';
-                document.getElementById('linkUrlInput').value = '';
-                document.getElementById('linkIconInput').value = 'fa-solid fa-globe';
-            }
-            document.getElementById('linkModal').classList.remove('hidden');
-        }
-        function closeLinkModal() {
-            document.getElementById('linkModal').classList.add('hidden');
-        }
-        function saveLinkItem() {
-            var index = parseInt(document.getElementById('editLinkIndex').value);
-            var title = document.getElementById('linkTitleInput').value.trim() || "Untitled";
-            var url = document.getElementById('linkUrlInput').value.trim() || "#";
-            var icon = document.getElementById('linkIconInput').value.trim() || "fa-solid fa-globe";
-
-            var newLink = { title: title, url: url, icon: icon };
-            if(index >= 0) {
-                appData.links[index] = newLink;
-            } else {
-                appData.links.push(newLink);
-            }
-            saveData();
-            renderLinks();
-            closeLinkModal();
-        }
-        function editLink(index) {
-            openLinkModal(index);
-        }
-        function deleteLink(index) {
-            appData.links.splice(index, 1);
-            saveData();
-            renderLinks();
-        }
-
-        function openPostModal() {
-            document.getElementById('postCaptionInput').value = '';
-            document.getElementById('postImageFileInput').value = '';
-            postImageBase64 = null;
-            document.getElementById('postImagePreviewContainer').classList.add('hidden');
-            document.getElementById('postModal').classList.remove('hidden');
-        }
-        function closePostModal() {
-            document.getElementById('postModal').classList.add('hidden');
-        }
-        function handlePostImageUpload(event) {
-            var file = event.target.files[0];
-            if(file) {
-                var reader = new FileReader();
-                reader.onload = function(e) {
-                    cropperTargetType = 'post';
-                    document.getElementById('cropperModalTitle').innerText = "Crop Post Image";
-                    var target = document.getElementById('cropperImageTarget');
-                    target.src = e.target.result;
-                    document.getElementById('postModal').classList.add('hidden');
-                    document.getElementById('cropperModal').classList.remove('hidden');
-                    if(cropperInstance) cropperInstance.destroy();
-                    setTimeout(function() {
-                        cropperInstance = new Cropper(target, { aspectRatio: 4/3, viewMode: 1 });
-                        updateActiveAspectBtn(4/3);
-                    }, 200);
-                };
-                reader.readAsDataURL(file);
-            }
-        }
-
-        function removePostImage() {
-            postImageBase64 = null;
-            document.getElementById('postImageFileInput').value = '';
-            document.getElementById('postImagePreviewContainer').classList.add('hidden');
-        }
-
-        function saveNewPost() {
-            var caption = document.getElementById('postCaptionInput').value.trim();
-            if(!caption && !postImageBase64) return;
-
-            appData.posts.unshift({
-                id: Date.now(),
-                caption: caption,
-                image: postImageBase64,
-                likes: 0,
-                timestamp: "Just now"
-            });
-            saveData();
-            renderPosts();
-            closePostModal();
-        }
-        function deletePost(index) {
-            appData.posts.splice(index, 1);
-            saveData();
-            renderPosts();
-        }
-        function likePost(id) {
-            var post = appData.posts.find(function(p) { return p.id === id; });
-            if(post) {
-                post.likes += 1;
-                saveData();
-                renderPosts();
-            }
-        }
-    </script>
+    // Initial Run
+    render();
+  </script>
 </body>
 </html>
