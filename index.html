@@ -440,7 +440,6 @@
   
   <!-- JavaScript Logic -->
   <script>
-    // State Data
     let activeTab = 'chat';
     let selectedClient = null;
     let isOwnerMode = false;
@@ -503,7 +502,6 @@
     const btnSubmitPassword = document.getElementById('btn-submit-password');
     const btnCancelPassword = document.getElementById('btn-cancel-password');
 
-    // Navigation Tabs
     window.switchTab = function(tabName) {
       activeTab = tabName;
       const btnChat = document.getElementById('tab-chat');
@@ -524,14 +522,12 @@
       }
     };
 
-    // Open Interactive Map Pin Picker Modal
     window.openMapLocationModal = function() {
       document.getElementById('modal-map-loc').classList.remove('hidden');
       
-      // Initialize Leaflet Map if not already created
       setTimeout(() => {
         if (!pickerMap) {
-          pickerMap = L.map('picker-map').setView([37.7749, -122.4194], 11); // Default SF
+          pickerMap = L.map('picker-map').setView([37.7749, -122.4194], 11);
           L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19,
             attribution: '© OpenStreetMap'
@@ -547,20 +543,20 @@
               pickerMarker = L.marker([lat, lng]).addTo(pickerMap);
             }
 
-            document.getElementById('picker-selected-text').textContent = "Fetching address...";
+            document.getElementById('picker-selected-text').textContent = "Finding location name...";
 
             try {
               const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
               const data = await res.json();
               if (data && data.address) {
-                const city = data.address.city || data.address.town || data.address.village || data.address.county || "Selected Area";
+                const city = data.address.city || data.address.town || data.address.village || data.address.state || "Location";
                 const country = data.address.country || "";
-                selectedPinLocation = `${city}, ${country}`;
+                selectedPinLocation = country ? `${city}, ${country}` : city;
               } else {
-                selectedPinLocation = `${lat.toFixed(2)}, ${lng.toFixed(2)}`;
+                selectedPinLocation = "Selected Location";
               }
             } catch (err) {
-              selectedPinLocation = `${lat.toFixed(2)}, ${lng.toFixed(2)}`;
+              selectedPinLocation = "Selected Location";
             }
 
             document.getElementById('picker-selected-text').textContent = `Selected: ${selectedPinLocation}`;
@@ -577,7 +573,6 @@
       render();
     });
 
-    // Chat List and Thread Management
     window.showChatList = function() {
       selectedClient = null;
       render();
@@ -609,7 +604,6 @@
       render();
     };
 
-    // Rename Chat Functionality
     window.openRenameModal = function() {
       document.getElementById('input-rename-name').value = selectedClient || '';
       document.getElementById('modal-rename').classList.remove('hidden');
@@ -732,7 +726,6 @@
       }
     }
 
-    // Render Main Data
     function render() {
       document.getElementById('profile-name').textContent = appData.profile.name;
       document.getElementById('header-name').textContent = appData.profile.name;
@@ -754,7 +747,6 @@
       document.getElementById('slider-opacity').value = appData.blur.opacity;
       document.getElementById('val-opacity').textContent = appData.blur.opacity + '%';
 
-      // Links
       const linksContainer = document.getElementById('links-container');
       linksContainer.innerHTML = '';
       appData.links.forEach(link => {
@@ -823,7 +815,6 @@
         document.getElementById('chat-mode-badge').textContent = "Direct Messages";
       }
 
-      // Posts render
       const postsContainer = document.getElementById('posts-container');
       postsContainer.innerHTML = '';
       if (!appData.posts || appData.posts.length === 0) {
@@ -873,7 +864,6 @@
         });
       }
 
-      // Mode UI
       if (isOwnerMode) {
         modeText.textContent = "Owner Mode";
         modeIcon.className = "fa-solid fa-user-gear";
@@ -889,7 +879,6 @@
       localStorage.setItem('dilan_bio_data', JSON.stringify(appData));
     }
 
-    // Toggle Owner Mode
     btnToggleMode.addEventListener('click', () => {
       if (isOwnerMode) {
         isOwnerMode = false;
@@ -916,7 +905,6 @@
       modalPassword.classList.add('hidden');
     });
 
-    // Chat Attachment
     document.getElementById('chat-image-input').addEventListener('change', (e) => {
       const files = e.target.files;
       if (files && files.length > 0) {
@@ -929,7 +917,6 @@
       }
     });
 
-    // Send Chat Message
     document.getElementById('btn-send-chat').addEventListener('click', () => {
       if (!selectedClient) return;
       const textInput = document.getElementById('chat-text').value.trim();
@@ -966,7 +953,6 @@
       render();
     };
 
-    // Close Modals
     document.querySelectorAll('.btn-close-modal').forEach(btn => {
       btn.addEventListener('click', () => {
         document.querySelectorAll('.fixed').forEach(m => m.classList.add('hidden'));
@@ -974,7 +960,6 @@
       });
     });
 
-    // Posts & Profiles
     document.getElementById('btn-add-post').addEventListener('click', () => {
       newPostImageData = null;
       document.getElementById('input-post-caption').value = '';
@@ -1038,7 +1023,6 @@
       }
     };
 
-    // Blur Controls
     document.getElementById('btn-open-blur').addEventListener('click', () => {
       document.getElementById('modal-blur').classList.remove('hidden');
     });
@@ -1051,7 +1035,6 @@
       render();
     });
 
-    // Profile Edit
     document.getElementById('btn-edit-profile').addEventListener('click', () => {
       document.getElementById('edit-name').value = appData.profile.name;
       document.getElementById('edit-title').value = appData.profile.title;
@@ -1077,7 +1060,6 @@
       render();
     });
 
-    // Link Management
     document.getElementById('btn-add-link').addEventListener('click', () => {
       editingLinkId = null;
       document.getElementById('modal-link-title').textContent = "Add New Link";
@@ -1126,7 +1108,6 @@
       render();
     };
 
-    // Avatar Crop
     document.getElementById('btn-change-avatar').addEventListener('click', () => {
       document.getElementById('modal-crop').classList.remove('hidden');
     });
@@ -1161,7 +1142,6 @@
       render();
     });
 
-    // Initial Run
     render();
   </script>
 </body>
