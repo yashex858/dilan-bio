@@ -152,10 +152,18 @@
             <button id="btn-back-chatlist" onclick="showChatList()" class="hidden text-indigo-400 hover:text-white pr-1"><i class="fa-solid fa-arrow-left"></i></button>
             <span id="chat-header-title" class="text-xs font-bold text-white">Chats List</span>
           </div>
-          <span id="chat-mode-badge" class="text-[10px] text-gray-400">Direct Messages</span>
+          
+          <div class="flex items-center space-x-2">
+            <!-- Rename Chat Button for User -->
+            <button id="btn-rename-chat" onclick="openRenameModal()" class="hidden text-[10px] bg-gray-800 hover:bg-gray-700 text-indigo-300 px-2.5 py-1 rounded-lg border border-indigo-500/30 transition flex items-center space-x-1">
+              <i class="fa-solid fa-pen-to-square text-[9px]"></i>
+              <span>Rename</span>
+            </button>
+            <span id="chat-mode-badge" class="text-[10px] text-gray-400">Direct Messages</span>
+          </div>
         </div>
 
-        <!-- CLIENT CHAT LIST VIEW -->
+        <!-- CLIENT CHAT LIST VIEW (Shown to Owner or users with multiple chats) -->
         <div id="chat-list-view" class="space-y-1.5 max-h-80 overflow-y-auto chat-scroll pr-1"></div>
 
         <!-- CLIENT CONVERSATION THREAD VIEW -->
@@ -181,9 +189,9 @@
           </div>
         </div>
 
-        <!-- Start New Chat Form (For Visitors Only) -->
+        <!-- Start New Chat Form (For Visitors without a Chat) -->
         <div id="new-client-chat-box" class="pt-2 border-t border-gray-800/80 space-y-2">
-          <p class="text-[10px] text-gray-400">Start a new message with your name:</p>
+          <p class="text-[10px] text-gray-400">Start your conversation with a name:</p>
           <div class="flex space-x-2">
             <input type="text" id="chat-username" placeholder="Your Name (e.g. Asam)*" class="flex-1 px-3 py-1.5 bg-gray-900 border border-gray-800 rounded-xl text-xs text-white focus:outline-none focus:border-indigo-500">
             <button onclick="startNewClientChat()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold transition">Start Chat</button>
@@ -199,6 +207,27 @@
       <div id="posts-container" class="space-y-4"></div>
     </div>
 
+  </div>
+
+  <!-- MODAL: Rename Chat -->
+  <div id="modal-rename" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="glass-card rounded-3xl max-w-sm w-full p-6 relative space-y-4">
+      <button class="btn-close-modal absolute top-4 right-4 text-gray-400 hover:text-white p-1">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+      <h3 class="text-lg font-bold text-white flex items-center space-x-2">
+        <i class="fa-solid fa-pen-to-square text-indigo-400"></i>
+        <span>Rename Your Chat</span>
+      </h3>
+      <div>
+        <label class="block text-xs text-gray-400 mb-1">New Display Name</label>
+        <input type="text" id="input-rename-name" placeholder="Enter new name" class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-xl text-sm text-white focus:outline-none focus:border-indigo-500">
+      </div>
+      <div class="flex space-x-2 pt-2">
+        <button class="btn-close-modal w-1/2 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-xl text-xs font-semibold">Cancel</button>
+        <button id="btn-save-rename" class="w-1/2 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold">Save Name</button>
+      </div>
+    </div>
   </div>
 
   <!-- MODAL: Password Prompt -->
@@ -382,6 +411,9 @@
     let newChatImageData = null;
     let ownerPassword = localStorage.getItem('dilan_owner_pass') || 'dilan 01';
 
+    // Unique local user session ID to lock each visitor to 1 chat
+    let localChatId = localStorage.getItem('dilan_user_chat_id') || null;
+
     const avatarColors = [
       'bg-indigo-600', 'bg-pink-600', 'bg-purple-600', 
       'bg-emerald-600', 'bg-amber-600', 'bg-cyan-600', 'bg-rose-600'
@@ -471,6 +503,11 @@
       }
       err.classList.add('hidden');
       if (!appData.clients) appData.clients = {};
+      
+      // Save visitor's chat ID locally
+      localChatId = name;
+      localStorage.setItem('dilan_user_chat_id', localChatId);
+
       if (!appData.clients[name]) {
         appData.clients[name] = [];
       }
@@ -478,6 +515,40 @@
       document.getElementById('chat-username').value = '';
       render();
     };
+
+    // Rename Chat Functionality
+    window.openRenameModal = function() {
+      document.getElementById('input-rename-name').value = selectedClient || '';
+      document.getElementById('modal-rename').classList.remove('hidden');
+    };
+
+    document.getElementById('btn-save-rename').addEventListener('click', () => {
+      const newName = document.getElementById('input-rename-name').value.trim();
+      if (!newName || newName === selectedClient) {
+        document.getElementById('modal-rename').classList.add('hidden');
+        return;
+      }
+
+      if (appData.clients && selectedClient && appData.clients[selectedClient]) {
+        // Transfer messages to new client key
+        appData.clients[newName] = appData.clients[selectedClient].map(msg => {
+          if (!msg.isOwner) msg.sender = newName;
+          return msg;
+        });
+        delete appData.clients[selectedClient];
+
+        // Update local saved chat ID if it's the visitor
+        if (localChatId === selectedClient) {
+          localChatId = newName;
+          localStorage.setItem('dilan_user_chat_id', localChatId);
+        }
+
+        selectedClient = newName;
+      }
+
+      document.getElementById('modal-rename').classList.add('hidden');
+      render();
+    });
 
     function renderChatList() {
       const listView = document.getElementById('chat-list-view');
@@ -615,26 +686,42 @@
         linksContainer.appendChild(linkEl);
       });
 
+      // Auto-select existing client chat if visitor already created 1
+      if (!isOwnerMode && localChatId && !selectedClient && appData.clients && appData.clients[localChatId]) {
+        selectedClient = localChatId;
+      }
+
       // Render Active Chat View Controls
       const listView = document.getElementById('chat-list-view');
       const threadView = document.getElementById('chat-thread-view');
       const backBtn = document.getElementById('btn-back-chatlist');
       const headerTitle = document.getElementById('chat-header-title');
       const newChatBox = document.getElementById('new-client-chat-box');
+      const renameBtn = document.getElementById('btn-rename-chat');
 
       if (selectedClient) {
         listView.classList.add('hidden');
         threadView.classList.remove('hidden');
-        backBtn.classList.remove('hidden');
         headerTitle.textContent = selectedClient;
         newChatBox.classList.add('hidden');
+        
+        // Show back button only for Owner
+        if (isOwnerMode) {
+          backBtn.classList.remove('hidden');
+          renameBtn.classList.add('hidden');
+        } else {
+          backBtn.classList.add('hidden');
+          renameBtn.classList.remove('hidden'); // Show rename button for visitor
+        }
         renderChatThread();
       } else {
         listView.classList.remove('hidden');
         threadView.classList.add('hidden');
         backBtn.classList.add('hidden');
+        renameBtn.classList.add('hidden');
         headerTitle.textContent = "Chats List";
-        if (isOwnerMode) {
+        
+        if (isOwnerMode || localChatId) {
           newChatBox.classList.add('hidden');
         } else {
           newChatBox.classList.remove('hidden');
