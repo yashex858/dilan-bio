@@ -113,17 +113,22 @@
       </button>
     </div>
 
-    <!-- PUBLIC LIVE CHAT SECTION -->
-    <div class="pt-4 space-y-3 border-t border-gray-800/80">
-      <div class="flex items-center justify-between">
-        <h3 class="text-base font-bold text-white flex items-center space-x-2">
-          <i class="fa-solid fa-comments text-indigo-400"></i>
-          <span>Live Public Chat</span>
-        </h3>
-        <span class="text-[10px] bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full border border-green-500/30">Active</span>
+    <!-- NAVIGATION TABS -->
+    <div class="pt-4 border-t border-gray-800/80">
+      <div class="glass-card p-1.5 rounded-2xl flex space-x-1">
+        <button id="tab-chat" onclick="switchTab('chat')" class="flex-1 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-2 bg-indigo-600 text-white">
+          <i class="fa-solid fa-comments"></i>
+          <span>Live Chat</span>
+        </button>
+        <button id="tab-posts" onclick="switchTab('posts')" class="flex-1 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-2 text-gray-400 hover:text-white">
+          <i class="fa-regular fa-images"></i>
+          <span>Photos & Posts</span>
+        </button>
       </div>
+    </div>
 
-      <!-- Chat Container -->
+    <!-- TAB 1: LIVE CHAT SECTION -->
+    <div id="section-chat" class="space-y-3">
       <div class="glass-card rounded-3xl p-4 space-y-3 shadow-lg">
         <div id="chat-messages-box" class="space-y-2 max-h-60 overflow-y-auto pr-1"></div>
 
@@ -141,16 +146,10 @@
       </div>
     </div>
 
-    <!-- Posts / Feed Section Header -->
-    <div class="pt-4 flex items-center justify-between border-t border-gray-800/80">
-      <h3 class="text-base font-bold text-white flex items-center space-x-2">
-        <i class="fa-regular fa-images text-indigo-400"></i>
-        <span>Recent Posts & Updates</span>
-      </h3>
+    <!-- TAB 2: POSTS & PHOTOS SECTION -->
+    <div id="section-posts" class="hidden space-y-4">
+      <div id="posts-container" class="space-y-4"></div>
     </div>
-
-    <!-- Posts Container -->
-    <div id="posts-container" class="space-y-4"></div>
 
   </div>
 
@@ -326,6 +325,7 @@
   <!-- JavaScript Logic -->
   <script>
     // State Data
+    let activeTab = 'chat';
     let isOwnerMode = false;
     let editingLinkId = null;
     let cropper = null;
@@ -372,6 +372,27 @@
     const passwordError = document.getElementById('password-error');
     const btnSubmitPassword = document.getElementById('btn-submit-password');
     const btnCancelPassword = document.getElementById('btn-cancel-password');
+
+    // Tab Switching Logic
+    window.switchTab = function(tabName) {
+      activeTab = tabName;
+      const btnChat = document.getElementById('tab-chat');
+      const btnPosts = document.getElementById('tab-posts');
+      const secChat = document.getElementById('section-chat');
+      const secPosts = document.getElementById('section-posts');
+
+      if (tabName === 'chat') {
+        btnChat.className = "flex-1 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-2 bg-indigo-600 text-white shadow-md";
+        btnPosts.className = "flex-1 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-2 text-gray-400 hover:text-white";
+        secChat.classList.remove('hidden');
+        secPosts.classList.add('hidden');
+      } else {
+        btnPosts.className = "flex-1 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-2 bg-indigo-600 text-white shadow-md";
+        btnChat.className = "flex-1 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-2 text-gray-400 hover:text-white";
+        secPosts.classList.remove('hidden');
+        secChat.classList.add('hidden');
+      }
+    };
 
     // Render Data
     function render() {
@@ -447,7 +468,7 @@
       postsContainer.innerHTML = '';
 
       if (!appData.posts || appData.posts.length === 0) {
-        postsContainer.innerHTML = `<p class="text-xs text-gray-500 text-center py-4">No posts published yet.</p>`;
+        postsContainer.innerHTML = `<p class="text-xs text-gray-500 text-center py-4">No photos or posts published yet.</p>`;
       } else {
         appData.posts.forEach(post => {
           const postEl = document.createElement('div');
@@ -610,6 +631,7 @@
 
       document.getElementById('modal-post').classList.add('hidden');
       render();
+      switchTab('posts');
     });
 
     window.deletePost = function(id) {
