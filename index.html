@@ -116,7 +116,7 @@
     <!-- NAVIGATION TABS -->
     <div class="pt-4 border-t border-gray-800/80">
       <div class="glass-card p-1.5 rounded-2xl flex space-x-1">
-        <button id="tab-chat" onclick="switchTab('chat')" class="flex-1 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-2 bg-indigo-600 text-white">
+        <button id="tab-chat" onclick="switchTab('chat')" class="flex-1 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-2 bg-indigo-600 text-white shadow-md">
           <i class="fa-solid fa-comments"></i>
           <span>Live Chat</span>
         </button>
@@ -134,14 +134,24 @@
 
         <!-- Send Chat Message Form -->
         <div class="space-y-2 pt-2 border-t border-gray-800/80">
-          <input type="text" id="chat-username" placeholder="Your name (e.g. Alex)" class="w-full px-3 py-1.5 bg-gray-900 border border-gray-800 rounded-xl text-xs text-white focus:outline-none focus:border-indigo-500">
-          <div class="flex space-x-2">
+          <input type="text" id="chat-username" placeholder="Your name (Required)*" class="w-full px-3 py-1.5 bg-gray-900 border border-gray-800 rounded-xl text-xs text-white focus:outline-none focus:border-indigo-500">
+          
+          <div class="flex items-center space-x-2">
             <input type="text" id="chat-text" placeholder="Type a message..." class="flex-1 px-3 py-2 bg-gray-900 border border-gray-800 rounded-xl text-xs text-white focus:outline-none focus:border-indigo-500">
+            
+            <!-- Chat Image Attachment Button -->
+            <label class="px-3 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-xl text-xs cursor-pointer flex items-center justify-center transition" title="Attach Photo">
+              <i class="fa-solid fa-image"></i>
+              <input type="file" id="chat-image-input" accept="image/*" class="hidden">
+            </label>
+
             <button id="btn-send-chat" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold flex items-center space-x-1.5 transition">
               <i class="fa-solid fa-paper-plane text-xs"></i>
               <span>Send</span>
             </button>
           </div>
+          <p id="chat-image-preview-text" class="text-[10px] text-indigo-400 hidden">📷 Photo attached ready to send</p>
+          <p id="chat-error" class="text-[10px] text-red-400 hidden">Please enter your name before sending!</p>
         </div>
       </div>
     </div>
@@ -330,7 +340,8 @@
     let editingLinkId = null;
     let cropper = null;
     let newPostImageData = null;
-    let ownerPassword = localStorage.getItem('dilan_owner_pass') || 'dilan 01';
+    let newChatImageData = null;
+    let ownerPassword = localStorage.getItem('dilan_owner_pass') || 'dilan01';
 
     let appData = JSON.parse(localStorage.getItem('dilan_bio_data')) || {
       profile: {
@@ -357,7 +368,7 @@
         }
       ],
       chatMessages: [
-        { id: 'c1', sender: "Visitor", text: "Hey dilan01! Love the website design! 🔥", time: "10:15 AM" }
+        { id: 'c1', sender: "Visitor", text: "Hey dilan01! Love the website design! 🔥", image: null, time: "10:15 AM" }
       ]
     };
 
@@ -447,7 +458,7 @@
       } else {
         appData.chatMessages.forEach(msg => {
           const msgEl = document.createElement('div');
-          msgEl.className = "p-2.5 rounded-2xl bg-gray-900/80 border border-gray-800 flex flex-col space-y-0.5 relative group";
+          msgEl.className = "p-2.5 rounded-2xl bg-gray-900/80 border border-gray-800 flex flex-col space-y-1 relative group";
           msgEl.innerHTML = `
             <div class="flex items-center justify-between">
               <span class="text-xs font-bold text-indigo-300">${msg.sender}</span>
@@ -456,7 +467,8 @@
                 ${isOwnerMode ? `<button onclick="deleteChatMessage('${msg.id}')" class="text-gray-500 hover:text-red-400 text-[10px]"><i class="fa-solid fa-trash"></i></button>` : ''}
               </div>
             </div>
-            <p class="text-xs text-gray-200">${msg.text}</p>
+            ${msg.text ? `<p class="text-xs text-gray-200">${msg.text}</p>` : ''}
+            ${msg.image ? `<img src="${msg.image}" class="w-full h-36 object-cover rounded-xl mt-1 border border-gray-800">` : ''}
           `;
           chatBox.appendChild(msgEl);
         });
@@ -559,12 +571,33 @@
       modalPassword.classList.add('hidden');
     });
 
+    // Chat Image Attachment Handler
+    document.getElementById('chat-image-input').addEventListener('change', (e) => {
+      const files = e.target.files;
+      if (files && files.length > 0) {
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+          newChatImageData = evt.target.result;
+          document.getElementById('chat-image-preview-text').classList.remove('hidden');
+        };
+        reader.readAsDataURL(files[0]);
+      }
+    });
+
     // Send Public Chat Message
     document.getElementById('btn-send-chat').addEventListener('click', () => {
-      const senderInput = document.getElementById('chat-username').value.trim() || 'Guest';
+      const senderInput = document.getElementById('chat-username').value.trim();
       const textInput = document.getElementById('chat-text').value.trim();
+      const errorEl = document.getElementById('chat-error');
 
-      if (!textInput) return;
+      if (!senderInput) {
+        errorEl.classList.remove('hidden');
+        document.getElementById('chat-username').focus();
+        return;
+      }
+      errorEl.classList.add('hidden');
+
+      if (!textInput && !newChatImageData) return;
 
       if (!appData.chatMessages) appData.chatMessages = [];
 
@@ -575,10 +608,14 @@
         id: Date.now().toString(),
         sender: senderInput,
         text: textInput,
+        image: newChatImageData,
         time: timeStr
       });
 
       document.getElementById('chat-text').value = '';
+      document.getElementById('chat-image-input').value = '';
+      newChatImageData = null;
+      document.getElementById('chat-image-preview-text').classList.add('hidden');
       render();
     });
 
