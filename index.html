@@ -92,6 +92,20 @@
       </div>
     </div>
 
+    <!-- LOCATION MAP CARD -->
+    <div class="glass-card rounded-3xl p-4 space-y-2 shadow-lg">
+      <div class="flex items-center justify-between px-1">
+        <span class="text-xs font-bold text-white flex items-center space-x-1.5">
+          <i class="fa-solid fa-map-location-dot text-pink-400"></i>
+          <span>Location Map</span>
+        </span>
+        <span id="map-location-text" class="text-[10px] text-gray-400">San Francisco, CA</span>
+      </div>
+      <div class="w-full h-40 rounded-2xl overflow-hidden border border-gray-800 shadow-inner">
+        <iframe id="location-map-frame" class="w-full h-full border-0" loading="lazy" allowfullscreen src="https://maps.google.com/maps?q=San%20Francisco,%20CA&t=&z=12&ie=UTF8&iwloc=&output=embed"></iframe>
+      </div>
+    </div>
+
     <!-- Links List -->
     <div id="links-container" class="space-y-3"></div>
 
@@ -413,8 +427,13 @@
       document.getElementById('header-title').textContent = appData.profile.title;
       document.getElementById('profile-bio').textContent = appData.profile.bio;
       document.getElementById('profile-location').textContent = appData.profile.location;
+      document.getElementById('map-location-text').textContent = appData.profile.location;
       document.getElementById('profile-img').src = appData.profile.avatar;
       document.getElementById('header-avatar-badge').textContent = appData.profile.name.charAt(0).toUpperCase();
+
+      // Location Map render
+      const encodedLoc = encodeURIComponent(appData.profile.location || 'San Francisco, CA');
+      document.getElementById('location-map-frame').src = `https://maps.google.com/maps?q=${encodedLoc}&t=&z=12&ie=UTF8&iwloc=&output=embed`;
 
       // Blur render
       const bgBlur = document.getElementById('bg-blur');
