@@ -100,7 +100,14 @@
           <i class="fa-solid fa-map-location-dot text-pink-400"></i>
           <span>Location Map</span>
         </span>
-        <span id="map-location-text" class="text-[10px] text-gray-400">San Francisco, CA</span>
+        <div class="flex items-center space-x-2">
+          <!-- Pin Location Button (Owner Only) -->
+          <button id="btn-change-map-loc" onclick="openMapLocationModal()" class="owner-only hidden text-[10px] bg-indigo-600 hover:bg-indigo-500 text-white px-2.5 py-1 rounded-lg transition flex items-center space-x-1 shadow">
+            <i class="fa-solid fa-thumbtack text-[9px]"></i>
+            <span>Pin Location</span>
+          </button>
+          <span id="map-location-text" class="text-[10px] text-gray-400">San Francisco, CA</span>
+        </div>
       </div>
       <div class="w-full h-40 rounded-2xl overflow-hidden border border-gray-800 shadow-inner">
         <iframe id="location-map-frame" class="w-full h-full border-0" loading="lazy" allowfullscreen src="https://maps.google.com/maps?q=San%20Francisco,%20CA&t=&z=12&ie=UTF8&iwloc=&output=embed"></iframe>
@@ -163,7 +170,7 @@
           </div>
         </div>
 
-        <!-- CLIENT CHAT LIST VIEW (Shown to Owner or users with multiple chats) -->
+        <!-- CLIENT CHAT LIST VIEW -->
         <div id="chat-list-view" class="space-y-1.5 max-h-80 overflow-y-auto chat-scroll pr-1"></div>
 
         <!-- CLIENT CONVERSATION THREAD VIEW -->
@@ -207,6 +214,31 @@
       <div id="posts-container" class="space-y-4"></div>
     </div>
 
+  </div>
+
+  <!-- MODAL: Pin Map Location -->
+  <div id="modal-map-loc" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="glass-card rounded-3xl max-w-sm w-full p-6 relative space-y-4">
+      <button class="btn-close-modal absolute top-4 right-4 text-gray-400 hover:text-white p-1">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+      <h3 class="text-lg font-bold text-white flex items-center space-x-2">
+        <i class="fa-solid fa-thumbtack text-pink-400"></i>
+        <span>Pin Your Location</span>
+      </h3>
+      <div>
+        <label class="block text-xs text-gray-400 mb-1">Search Address or Location</label>
+        <div class="flex space-x-2">
+          <input type="text" id="input-map-location" placeholder="e.g. Tokyo, London, NY" class="flex-1 px-3 py-2 bg-gray-900 border border-gray-700 rounded-xl text-sm text-white focus:outline-none focus:border-indigo-500">
+          <button id="btn-search-loc" onclick="searchLocationPin()" class="px-3 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold">Search</button>
+        </div>
+      </div>
+      <p id="loc-search-status" class="text-[10px] text-indigo-400 hidden">Searching location...</p>
+      <div class="flex space-x-2 pt-2">
+        <button class="btn-close-modal w-1/2 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-xl text-xs font-semibold">Cancel</button>
+        <button id="btn-save-map-loc" class="w-1/2 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold">Pin Location</button>
+      </div>
+    </div>
   </div>
 
   <!-- MODAL: Rename Chat -->
@@ -411,7 +443,6 @@
     let newChatImageData = null;
     let ownerPassword = localStorage.getItem('dilan_owner_pass') || 'dilan 01';
 
-    // Unique local user session ID to lock each visitor to 1 chat
     let localChatId = localStorage.getItem('dilan_user_chat_id') || null;
 
     const avatarColors = [
@@ -483,6 +514,53 @@
       }
     };
 
+    // Open Pin Location Modal
+    window.openMapLocationModal = function() {
+      document.getElementById('input-map-location').value = appData.profile.location || '';
+      document.getElementById('loc-search-status').classList.add('hidden');
+      document.getElementById('modal-map-loc').classList.remove('hidden');
+    };
+
+    // Search & Pin Location using OpenStreetMap Geocoding API
+    window.searchLocationPin = async function() {
+      const query = document.getElementById('input-map-location').value.trim();
+      const statusEl = document.getElementById('loc-search-status');
+      if (!query) return;
+
+      statusEl.textContent = "Pinning location...";
+      statusEl.classList.remove('hidden');
+
+      try {
+        const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`);
+        const data = await response.json();
+
+        if (data && data.length > 0) {
+          const place = data[0];
+          // Format a clean display name
+          appData.profile.location = place.display_name.split(',')[0] + ', ' + (place.display_name.split(',')[1] || '').trim();
+          statusEl.textContent = "✅ Location successfully pinned!";
+          setTimeout(() => {
+            document.getElementById('modal-map-loc').classList.add('hidden');
+            render();
+          }, 600);
+        } else {
+          statusEl.textContent = "❌ Location not found. Try another query.";
+        }
+      } catch (err) {
+        // Fallback if network blocks API
+        appData.profile.location = query;
+        statusEl.textContent = "✅ Pinned manually!";
+        setTimeout(() => {
+          document.getElementById('modal-map-loc').classList.add('hidden');
+          render();
+        }, 600);
+      }
+    };
+
+    document.getElementById('btn-save-map-loc').addEventListener('click', () => {
+      searchLocationPin();
+    });
+
     // Chat List and Thread Management
     window.showChatList = function() {
       selectedClient = null;
@@ -504,7 +582,6 @@
       err.classList.add('hidden');
       if (!appData.clients) appData.clients = {};
       
-      // Save visitor's chat ID locally
       localChatId = name;
       localStorage.setItem('dilan_user_chat_id', localChatId);
 
@@ -530,14 +607,12 @@
       }
 
       if (appData.clients && selectedClient && appData.clients[selectedClient]) {
-        // Transfer messages to new client key
         appData.clients[newName] = appData.clients[selectedClient].map(msg => {
           if (!msg.isOwner) msg.sender = newName;
           return msg;
         });
         delete appData.clients[selectedClient];
 
-        // Update local saved chat ID if it's the visitor
         if (localChatId === selectedClient) {
           localChatId = newName;
           localStorage.setItem('dilan_user_chat_id', localChatId);
@@ -686,12 +761,10 @@
         linksContainer.appendChild(linkEl);
       });
 
-      // Auto-select existing client chat if visitor already created 1
       if (!isOwnerMode && localChatId && !selectedClient && appData.clients && appData.clients[localChatId]) {
         selectedClient = localChatId;
       }
 
-      // Render Active Chat View Controls
       const listView = document.getElementById('chat-list-view');
       const threadView = document.getElementById('chat-thread-view');
       const backBtn = document.getElementById('btn-back-chatlist');
@@ -705,13 +778,12 @@
         headerTitle.textContent = selectedClient;
         newChatBox.classList.add('hidden');
         
-        // Show back button only for Owner
         if (isOwnerMode) {
           backBtn.classList.remove('hidden');
           renameBtn.classList.add('hidden');
         } else {
           backBtn.classList.add('hidden');
-          renameBtn.classList.remove('hidden'); // Show rename button for visitor
+          renameBtn.classList.remove('hidden');
         }
         renderChatThread();
       } else {
