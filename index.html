@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bio-Link & Portfolio App</title>
+  <title>dilan01 - Bio & Portfolio</title>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- FontAwesome Icons -->
@@ -39,10 +39,10 @@
     <header class="glass-card rounded-2xl p-3 flex items-center justify-between shadow-lg">
       <div class="flex items-center space-x-3">
         <div id="header-avatar-badge" class="w-10 h-10 rounded-full bg-indigo-600 flex items-center justify-center text-white font-bold text-lg">
-          A
+          D
         </div>
         <div>
-          <h2 id="header-name" class="font-bold text-sm leading-tight text-white">Alex Rivera</h2>
+          <h2 id="header-name" class="font-bold text-sm leading-tight text-white">dilan01</h2>
           <p id="header-title" class="text-xs text-gray-400">Digital Creator & Dev</p>
         </div>
       </div>
@@ -74,7 +74,7 @@
       </div>
 
       <!-- Name & Bio -->
-      <h1 id="profile-name" class="text-2xl font-extrabold text-white mb-1">Alex Rivera</h1>
+      <h1 id="profile-name" class="text-2xl font-extrabold text-white mb-1">dilan01</h1>
       <p id="profile-bio" class="text-sm text-gray-300 leading-relaxed mb-3">Building immersive web experiences, design systems, and digital art. Let's collaborate!</p>
 
       <!-- Location Badge -->
@@ -122,7 +122,7 @@
         <i class="fa-solid fa-lock text-indigo-400"></i>
         <span>Enter Owner Password</span>
       </h3>
-      <p class="text-xs text-gray-400">Default password is <code class="bg-gray-800 px-1 py-0.5 rounded text-indigo-300">dilan11</code></p>
+      <p class="text-xs text-gray-400">Default password is <code class="bg-gray-800 px-1 py-0.5 rounded text-indigo-300">1234</code></p>
       <input type="password" id="input-password" placeholder="Enter password" class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-xl text-sm text-white focus:outline-none focus:border-indigo-500">
       <p id="password-error" class="text-xs text-red-400 hidden">Incorrect password. Please try again.</p>
       <div class="flex space-x-2 pt-2">
@@ -262,11 +262,11 @@
     let isOwnerMode = false;
     let editingLinkId = null;
     let cropper = null;
-    let ownerPassword = localStorage.getItem('dilan_owner_pass') || 'dilan11';
+    let ownerPassword = localStorage.getItem('dilan_owner_pass') || '1234';
 
     let appData = JSON.parse(localStorage.getItem('dilan_bio_data')) || {
       profile: {
-        name: "Alex Rivera",
+        name: "dilan01",
         title: "Digital Creator & Dev",
         bio: "Building immersive web experiences, design systems, and digital art. Let's collaborate!",
         location: "San Francisco, CA",
@@ -301,7 +301,7 @@
       document.getElementById('profile-bio').textContent = appData.profile.bio;
       document.getElementById('profile-location').textContent = appData.profile.location;
       document.getElementById('profile-img').src = appData.profile.avatar;
-      document.getElementById('header-avatar-badge').textContent = appData.profile.name.charAt(0);
+      document.getElementById('header-avatar-badge').textContent = appData.profile.name.charAt(0).toUpperCase();
 
       // Blur render
       const bgBlur = document.getElementById('bg-blur');
