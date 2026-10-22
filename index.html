@@ -113,6 +113,34 @@
       </button>
     </div>
 
+    <!-- PUBLIC LIVE CHAT SECTION -->
+    <div class="pt-4 space-y-3 border-t border-gray-800/80">
+      <div class="flex items-center justify-between">
+        <h3 class="text-base font-bold text-white flex items-center space-x-2">
+          <i class="fa-solid fa-comments text-indigo-400"></i>
+          <span>Live Public Chat</span>
+        </h3>
+        <span class="text-[10px] bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full border border-green-500/30">Active</span>
+      </div>
+
+      <!-- Chat Container -->
+      <div class="glass-card rounded-3xl p-4 space-y-3 shadow-lg">
+        <div id="chat-messages-box" class="space-y-2 max-h-60 overflow-y-auto pr-1"></div>
+
+        <!-- Send Chat Message Form -->
+        <div class="space-y-2 pt-2 border-t border-gray-800/80">
+          <input type="text" id="chat-username" placeholder="Your name (e.g. Alex)" class="w-full px-3 py-1.5 bg-gray-900 border border-gray-800 rounded-xl text-xs text-white focus:outline-none focus:border-indigo-500">
+          <div class="flex space-x-2">
+            <input type="text" id="chat-text" placeholder="Type a message..." class="flex-1 px-3 py-2 bg-gray-900 border border-gray-800 rounded-xl text-xs text-white focus:outline-none focus:border-indigo-500">
+            <button id="btn-send-chat" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold flex items-center space-x-1.5 transition">
+              <i class="fa-solid fa-paper-plane text-xs"></i>
+              <span>Send</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Posts / Feed Section Header -->
     <div class="pt-4 flex items-center justify-between border-t border-gray-800/80">
       <h3 class="text-base font-bold text-white flex items-center space-x-2">
@@ -302,7 +330,7 @@
     let editingLinkId = null;
     let cropper = null;
     let newPostImageData = null;
-    let ownerPassword = localStorage.getItem('dilan_owner_pass') || 'dilan01';
+    let ownerPassword = localStorage.getItem('dilan_owner_pass') || 'dilan 01';
 
     let appData = JSON.parse(localStorage.getItem('dilan_bio_data')) || {
       profile: {
@@ -327,6 +355,9 @@
           date: "Just now",
           comments: ["Awesome build!", "Looks super clean! 🔥"]
         }
+      ],
+      chatMessages: [
+        { id: 'c1', sender: "Visitor", text: "Hey dilan01! Love the website design! 🔥", time: "10:15 AM" }
       ]
     };
 
@@ -386,6 +417,30 @@
         `;
         linksContainer.appendChild(linkEl);
       });
+
+      // Public Chat render
+      const chatBox = document.getElementById('chat-messages-box');
+      chatBox.innerHTML = '';
+      if (!appData.chatMessages || appData.chatMessages.length === 0) {
+        chatBox.innerHTML = `<p class="text-xs text-gray-500 text-center py-2">No messages yet. Say hi below!</p>`;
+      } else {
+        appData.chatMessages.forEach(msg => {
+          const msgEl = document.createElement('div');
+          msgEl.className = "p-2.5 rounded-2xl bg-gray-900/80 border border-gray-800 flex flex-col space-y-0.5 relative group";
+          msgEl.innerHTML = `
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-indigo-300">${msg.sender}</span>
+              <div class="flex items-center space-x-2">
+                <span class="text-[10px] text-gray-500">${msg.time}</span>
+                ${isOwnerMode ? `<button onclick="deleteChatMessage('${msg.id}')" class="text-gray-500 hover:text-red-400 text-[10px]"><i class="fa-solid fa-trash"></i></button>` : ''}
+              </div>
+            </div>
+            <p class="text-xs text-gray-200">${msg.text}</p>
+          `;
+          chatBox.appendChild(msgEl);
+        });
+        chatBox.scrollTop = chatBox.scrollHeight;
+      }
 
       // Posts render
       const postsContainer = document.getElementById('posts-container');
@@ -482,6 +537,34 @@
     btnCancelPassword.addEventListener('click', () => {
       modalPassword.classList.add('hidden');
     });
+
+    // Send Public Chat Message
+    document.getElementById('btn-send-chat').addEventListener('click', () => {
+      const senderInput = document.getElementById('chat-username').value.trim() || 'Guest';
+      const textInput = document.getElementById('chat-text').value.trim();
+
+      if (!textInput) return;
+
+      if (!appData.chatMessages) appData.chatMessages = [];
+
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+      appData.chatMessages.push({
+        id: Date.now().toString(),
+        sender: senderInput,
+        text: textInput,
+        time: timeStr
+      });
+
+      document.getElementById('chat-text').value = '';
+      render();
+    });
+
+    window.deleteChatMessage = function(id) {
+      appData.chatMessages = appData.chatMessages.filter(m => m.id !== id);
+      render();
+    };
 
     // Close Modals
     document.querySelectorAll('.btn-close-modal').forEach(btn => {
