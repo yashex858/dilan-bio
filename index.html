@@ -382,8 +382,8 @@
 
         <div class="pt-2 border-t border-gray-800 space-y-2">
           <div class="flex items-center justify-between">
-            <label class="block text-xs font-bold text-indigo-300">Social Icons (Choose 2-3)</label>
-            <button onclick="addSocialField()" type="button" class="text-[10px] bg-indigo-600 hover:bg-indigo-500 text-white px-2 py-1 rounded-lg">+ Add Icon</button>
+            <label class="block text-xs font-bold text-indigo-300">Social Links (Auto Icon Detection)</label>
+            <button onclick="addSocialField()" type="button" class="text-[10px] bg-indigo-600 hover:bg-indigo-500 text-white px-2 py-1 rounded-lg">+ Add Link</button>
           </div>
           <div id="social-inputs-list" class="space-y-2 max-h-40 overflow-y-auto chat-scroll pr-1"></div>
         </div>
@@ -415,12 +415,8 @@
           <input type="text" id="link-title-input" placeholder="e.g. My Portfolio" class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-xl text-sm text-white focus:outline-none focus:border-indigo-500">
         </div>
         <div>
-          <label class="block text-xs text-gray-400 mb-1">URL</label>
-          <input type="url" id="link-url-input" placeholder="https://example.com" class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-xl text-sm text-white focus:outline-none focus:border-indigo-500">
-        </div>
-        <div>
-          <label class="block text-xs text-gray-400 mb-1">Icon (FontAwesome Class)</label>
-          <input type="text" id="link-icon-input" placeholder="fa-globe, fa-calendar, fa-newspaper" class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-xl text-sm text-white focus:outline-none focus:border-indigo-500">
+          <label class="block text-xs text-gray-400 mb-1">URL (Icon auto-detects from this)</label>
+          <input type="url" id="link-url-input" placeholder="https://instagram.com/username" class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-xl text-sm text-white focus:outline-none focus:border-indigo-500">
         </div>
       </div>
 
@@ -487,36 +483,35 @@
       for (let i = 0; i < name.length; i++) hash += name.charCodeAt(i);
       return avatarColors[hash % avatarColors.length];
     }
-function getValidIconClass(str) {
-  if (!str) return 'fas fa-link';
-  const lower = str.toLowerCase();
 
-  // 1. Social Brands Auto-Detection
-  if (lower.includes('instagram')) return 'fab fa-instagram';
-  if (lower.includes('facebook')) return 'fab fa-facebook';
-  if (lower.includes('github')) return 'fab fa-github';
-  if (lower.includes('linkedin')) return 'fab fa-linkedin';
-  if (lower.includes('twitter') || lower.includes('x.com')) return 'fab fa-x-twitter';
-  if (lower.includes('youtube')) return 'fab fa-youtube';
-  if (lower.includes('tiktok')) return 'fab fa-tiktok';
-  if (lower.includes('discord')) return 'fab fa-discord';
-  if (lower.includes('telegram') || lower.includes('t.me')) return 'fab fa-telegram';
-  if (lower.includes('whatsapp')) return 'fab fa-whatsapp';
-  if (lower.includes('spotify')) return 'fab fa-spotify';
-  if (lower.includes('twitch')) return 'fab fa-twitch';
-  
-  // 2. Generic / Utility Icons
-  if (lower.includes('globe') || lower.includes('website') || lower.includes('http')) return 'fas fa-globe';
-  if (lower.includes('mail') || lower.includes('gmail') || lower.includes('@')) return 'fas fa-envelope';
-  if (lower.includes('phone')) return 'fas fa-phone';
+    function getValidIconClass(str) {
+      if (!str) return 'fas fa-link';
+      const lower = str.toLowerCase();
 
-  // 3. Fallback for custom Font Awesome classes
-  if (str.startsWith('fa-') || str.startsWith('fab ') || str.startsWith('fas ')) {
-    return str.startsWith('fa-') ? 'fas ' + str : str;
-  }
+      if (lower.includes('instagram')) return 'fab fa-instagram';
+      if (lower.includes('facebook')) return 'fab fa-facebook';
+      if (lower.includes('github')) return 'fab fa-github';
+      if (lower.includes('linkedin')) return 'fab fa-linkedin';
+      if (lower.includes('twitter') || lower.includes('x.com')) return 'fab fa-x-twitter';
+      if (lower.includes('youtube')) return 'fab fa-youtube';
+      if (lower.includes('tiktok')) return 'fab fa-tiktok';
+      if (lower.includes('discord')) return 'fab fa-discord';
+      if (lower.includes('telegram') || lower.includes('t.me')) return 'fab fa-telegram';
+      if (lower.includes('whatsapp')) return 'fab fa-whatsapp';
+      if (lower.includes('spotify')) return 'fab fa-spotify';
+      if (lower.includes('twitch')) return 'fab fa-twitch';
+      
+      if (lower.includes('globe') || lower.includes('website') || lower.includes('http')) return 'fas fa-globe';
+      if (lower.includes('mail') || lower.includes('gmail') || lower.includes('@')) return 'fas fa-envelope';
+      if (lower.includes('phone')) return 'fas fa-phone';
 
-  return 'fas fa-link';
-}
+      if (str.startsWith('fa-') || str.startsWith('fab ') || str.startsWith('fas ')) {
+        return str.startsWith('fa-') ? 'fas ' + str : str;
+      }
+
+      return 'fas fa-link';
+    }
+
     let appData = {
       profile: {
         name: "dilan",
@@ -525,9 +520,9 @@ function getValidIconClass(str) {
         location: "Slimane, Iraq",
         avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
         socials: [
-          { icon: "fa-brands fa-github", url: "https://github.com" },
-          { icon: "fa-brands fa-instagram", url: "https://instagram.com" },
-          { icon: "fa-solid fa-envelope", url: "mailto:hello@example.com" }
+          { url: "https://github.com" },
+          { url: "https://instagram.com" },
+          { url: "mailto:hello@example.com" }
         ]
       },
       bg: { intensity: 20, opacity: 50, image: "" },
@@ -536,7 +531,8 @@ function getValidIconClass(str) {
       clients: {}
     };
 
-    // Cloud Sync Functions
+    // Cloud Sync Functions with Debounce to prevent API flooding
+    let saveTimeout = null;
     async function loadCloudData() {
       try {
         const res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, {
@@ -546,6 +542,10 @@ function getValidIconClass(str) {
           const data = await res.json();
           if (data.record) {
             appData = data.record;
+            // Ensure bg settings exist if loading from older schema
+            if (!appData.bg) {
+              appData.bg = { intensity: 20, opacity: 50, image: "" };
+            }
             render();
           }
         }
@@ -554,19 +554,22 @@ function getValidIconClass(str) {
       }
     }
 
-    async function saveCloudData() {
-      try {
-        await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-Master-Key': MASTER_KEY
-          },
-          body: JSON.stringify(appData)
-        });
-      } catch (err) {
-        console.error("Cloud save error:", err);
-      }
+    function saveCloudData() {
+      clearTimeout(saveTimeout);
+      saveTimeout = setTimeout(async () => {
+        try {
+          await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-Master-Key': MASTER_KEY
+            },
+            body: JSON.stringify(appData)
+          });
+        } catch (err) {
+          console.error("Cloud save error:", err);
+        }
+      }, 300);
     }
 
     const btnToggleMode = document.getElementById('btn-toggle-mode');
@@ -825,7 +828,7 @@ function getValidIconClass(str) {
           a.href = soc.url || '#';
           a.target = "_blank";
           a.className = "w-9 h-9 rounded-xl bg-gray-800/80 flex items-center justify-center text-gray-300 hover:text-white hover:bg-gray-700 transition";
-          a.innerHTML = `<i class="${soc.icon || 'fa-solid fa-globe'}"></i>`;
+          a.innerHTML = `<i class="${getValidIconClass(soc.url)}"></i>`;
           socialContainer.appendChild(a);
         });
       }
@@ -833,19 +836,22 @@ function getValidIconClass(str) {
       const encodedLoc = encodeURIComponent(appData.profile.location || 'Slimane, Iraq');
       document.getElementById('location-map-frame').src = `https://maps.google.com/maps?q=${encodedLoc}&t=&z=12&ie=UTF8&iwloc=&output=embed`;
 
+      // Safe Background Rendering & Verification
       const bgBlur = document.getElementById('bg-blur');
-      bgBlur.style.filter = `blur(${appData.bg.intensity}px)`;
-      bgBlur.style.opacity = appData.bg.opacity / 100;
-      if (appData.bg.image) {
-        bgBlur.style.background = `url('${appData.bg.image}') center/cover no-repeat`;
-      } else {
-        bgBlur.style.background = `radial-gradient(circle at 50% 30%, #6366f1 0%, #a855f7 40%, transparent 70%)`;
-      }
+      if (appData.bg) {
+        bgBlur.style.filter = `blur(${appData.bg.intensity}px)`;
+        bgBlur.style.opacity = appData.bg.opacity / 100;
+        if (appData.bg.image) {
+          bgBlur.style.background = `url('${appData.bg.image}') center/cover no-repeat`;
+        } else {
+          bgBlur.style.background = `radial-gradient(circle at 50% 30%, #6366f1 0%, #a855f7 40%, transparent 70%)`;
+        }
 
-      document.getElementById('slider-blur').value = appData.bg.intensity;
-      document.getElementById('val-blur').textContent = appData.bg.intensity + 'px';
-      document.getElementById('slider-opacity').value = appData.bg.opacity;
-      document.getElementById('val-opacity').textContent = appData.bg.opacity + '%';
+        document.getElementById('slider-blur').value = appData.bg.intensity;
+        document.getElementById('val-blur').textContent = appData.bg.intensity + 'px';
+        document.getElementById('slider-opacity').value = appData.bg.opacity;
+        document.getElementById('val-opacity').textContent = appData.bg.opacity + '%';
+      }
 
       const linksContainer = document.getElementById('links-container');
       linksContainer.innerHTML = '';
@@ -856,7 +862,7 @@ function getValidIconClass(str) {
           linkEl.innerHTML = `
              <a href="${link.url}" target="_blank" class="flex items-center space-x-3 flex-1 overflow-hidden">
                 <div class="w-10 h-10 rounded-xl bg-gray-800/80 flex items-center justify-center text-indigo-400 group-hover:bg-indigo-600 transition">
-                  <i class="${getValidIconClass(link.icon || link.url)}"></i>
+                  <i class="${getValidIconClass(link.url)}"></i>
                 </div>
               <span class="font-semibold text-sm text-gray-100 truncate">${link.title}</span>
             </a>
@@ -1068,6 +1074,7 @@ function getValidIconClass(str) {
       if (files && files.length > 0) {
         const reader = new FileReader();
         reader.onload = function(evt) {
+          if (!appData.bg) appData.bg = {};
           appData.bg.image = evt.target.result;
           render();
           saveCloudData();
@@ -1077,6 +1084,7 @@ function getValidIconClass(str) {
     });
 
     window.removeBgImage = function() {
+      if (!appData.bg) appData.bg = {};
       appData.bg.image = "";
       render();
       saveCloudData();
@@ -1117,37 +1125,36 @@ function getValidIconClass(str) {
     };
 
     document.getElementById('btn-save-post').addEventListener('click', () => {
-  const caption = document.getElementById('input-post-caption').value;
+      const caption = document.getElementById('input-post-caption').value;
 
-  if (postCropper) {
-    const canvas = postCropper.getCroppedCanvas({ width: 600 });
-    // Compress to JPEG with 70% quality to fit within JSONBin payload limits
-    newPostImageData = canvas.toDataURL('image/jpeg', 0.7);
-  }
+      if (postCropper) {
+        const canvas = postCropper.getCroppedCanvas({ width: 600 });
+        newPostImageData = canvas.toDataURL('image/jpeg', 0.7);
+      }
 
-  if (!caption && !newPostImageData) return;
+      if (!caption && !newPostImageData) return;
 
-  if (!appData.posts) appData.posts = [];
+      if (!appData.posts) appData.posts = [];
 
-  appData.posts.unshift({
-    id: Date.now().toString(),
-    caption: caption,
-    image: newPostImageData,
-    likes: 0,
-    date: "Just now",
-    comments: []
-  });
+      appData.posts.unshift({
+        id: Date.now().toString(),
+        caption: caption,
+        image: newPostImageData,
+        likes: 0,
+        date: "Just now",
+        comments: []
+      });
 
-  if (postCropper) { 
-    postCropper.destroy(); 
-    postCropper = null; 
-  }
-  
-  document.getElementById('modal-post').classList.add('hidden');
-  render();
-  switchTab('posts');
-  saveCloudData(); // <--- Syncs posts to the cloud permanently!
-});
+      if (postCropper) { 
+        postCropper.destroy(); 
+        postCropper = null; 
+      }
+      
+      document.getElementById('modal-post').classList.add('hidden');
+      render();
+      switchTab('posts');
+      saveCloudData();
+    });
 
     window.deletePost = function(id) {
       appData.posts = appData.posts.filter(p => p.id !== id);
@@ -1180,12 +1187,16 @@ function getValidIconClass(str) {
     document.getElementById('btn-open-blur').addEventListener('click', () => {
       document.getElementById('modal-blur').classList.remove('hidden');
     });
+
     document.getElementById('slider-blur').addEventListener('input', (e) => {
+      if (!appData.bg) appData.bg = {};
       appData.bg.intensity = e.target.value;
       render();
       saveCloudData();
     });
+
     document.getElementById('slider-opacity').addEventListener('input', (e) => {
+      if (!appData.bg) appData.bg = {};
       appData.bg.opacity = e.target.value;
       render();
       saveCloudData();
@@ -1211,8 +1222,7 @@ function getValidIconClass(str) {
         const row = document.createElement('div');
         row.className = "flex space-x-2 items-center bg-gray-900/80 p-2 rounded-xl border border-gray-800";
         row.innerHTML = `
-          <input type="text" placeholder="Icon (e.g. fa-brands fa-github)" value="${soc.icon}" data-idx="${index}" class="social-icon-input flex-1 px-2 py-1 bg-gray-800 border border-gray-700 rounded-lg text-xs text-white focus:outline-none">
-          <input type="url" placeholder="URL (https://...)" value="${soc.url}" data-idx="${index}" class="social-url-input flex-1 px-2 py-1 bg-gray-800 border border-gray-700 rounded-lg text-xs text-white focus:outline-none">
+          <input type="url" placeholder="Social URL (e.g. https://instagram.com/dilan)" value="${soc.url || ''}" data-idx="${index}" class="social-url-input flex-1 px-2.5 py-1.5 bg-gray-800 border border-gray-700 rounded-lg text-xs text-white focus:outline-none">
           <button type="button" onclick="removeSocialField(${index})" class="text-red-400 hover:text-red-300 p-1 text-xs"><i class="fa-solid fa-trash"></i></button>
         `;
         container.appendChild(row);
@@ -1221,7 +1231,7 @@ function getValidIconClass(str) {
 
     window.addSocialField = function() {
       if (!appData.profile.socials) appData.profile.socials = [];
-      appData.profile.socials.push({ icon: "fa-brands fa-globe", url: "https://" });
+      appData.profile.socials.push({ url: "https://" });
       renderSocialInputs();
     };
 
@@ -1236,13 +1246,11 @@ function getValidIconClass(str) {
       appData.profile.bio = document.getElementById('edit-bio').value;
       appData.profile.location = document.getElementById('edit-location').value;
       
-      const iconInputs = document.querySelectorAll('.social-icon-input');
       const urlInputs = document.querySelectorAll('.social-url-input');
       const updatedSocials = [];
-      for (let i = 0; i < iconInputs.length; i++) {
-        if (iconInputs[i].value.trim() && urlInputs[i].value.trim()) {
+      for (let i = 0; i < urlInputs.length; i++) {
+        if (urlInputs[i].value.trim()) {
           updatedSocials.push({
-            icon: iconInputs[i].value.trim(),
             url: urlInputs[i].value.trim()
           });
         }
@@ -1260,27 +1268,13 @@ function getValidIconClass(str) {
       saveCloudData();
     });
 
-document.getElementById('btn-add-link').addEventListener('click', () => {
+    document.getElementById('btn-add-link').addEventListener('click', () => {
       editingLinkId = null;
       document.getElementById('modal-link-title').textContent = "Add New Link";
       document.getElementById('link-title-input').value = '';
       document.getElementById('link-url-input').value = '';
-      document.getElementById('link-icon-input').value = '';
       document.getElementById('modal-link').classList.remove('hidden');
     });
-
-    function getValidIconClass(iconStr) {
-      if (!iconStr) return 'fas fa-link';
-      const lower = iconStr.toLowerCase();
-      if (lower.includes('instagram')) return 'fab fa-instagram';
-      if (lower.includes('facebook')) return 'fab fa-facebook';
-      if (lower.includes('github')) return 'fab fa-github';
-      if (lower.includes('linkedin')) return 'fab fa-linkedin';
-      if (lower.includes('twitter') || lower.includes('x')) return 'fab fa-x-twitter';
-      if (lower.includes('youtube')) return 'fab fa-youtube';
-      if (lower.includes('tiktok')) return 'fab fa-tiktok';
-      return iconStr.startsWith('fa-') ? 'fas ' + iconStr : iconStr;
-    }
 
     window.openEditLinkModal = function(id) {
       editingLinkId = id;
@@ -1289,15 +1283,13 @@ document.getElementById('btn-add-link').addEventListener('click', () => {
         document.getElementById('modal-link-title').textContent = "Edit Link";
         document.getElementById('link-title-input').value = link.title;
         document.getElementById('link-url-input').value = link.url;
-        document.getElementById('link-icon-input').value = link.icon;
         document.getElementById('modal-link').classList.remove('hidden');
       }
     };
 
     document.getElementById('btn-save-link').addEventListener('click', () => {
-      const title = document.getElementById('link-title-input').value;
+      const title = document.getElementById('link-title-input->value' || 'link-title-input').value;
       const url = document.getElementById('link-url-input').value;
-      const icon = document.getElementById('link-icon-input').value;
 
       if (!title || !url) return;
 
@@ -1308,10 +1300,9 @@ document.getElementById('btn-add-link').addEventListener('click', () => {
         if (link) {
           link.title = title;
           link.url = url;
-          link.icon = icon;
         }
       } else {
-        appData.links.push({ id: Date.now().toString(), title, url, icon });
+        appData.links.push({ id: Date.now().toString(), title, url });
       }
 
       document.getElementById('modal-link').classList.add('hidden');
