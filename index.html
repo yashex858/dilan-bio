@@ -487,7 +487,36 @@
       for (let i = 0; i < name.length; i++) hash += name.charCodeAt(i);
       return avatarColors[hash % avatarColors.length];
     }
+function getValidIconClass(str) {
+  if (!str) return 'fas fa-link';
+  const lower = str.toLowerCase();
 
+  // 1. Social Brands Auto-Detection
+  if (lower.includes('instagram')) return 'fab fa-instagram';
+  if (lower.includes('facebook')) return 'fab fa-facebook';
+  if (lower.includes('github')) return 'fab fa-github';
+  if (lower.includes('linkedin')) return 'fab fa-linkedin';
+  if (lower.includes('twitter') || lower.includes('x.com')) return 'fab fa-x-twitter';
+  if (lower.includes('youtube')) return 'fab fa-youtube';
+  if (lower.includes('tiktok')) return 'fab fa-tiktok';
+  if (lower.includes('discord')) return 'fab fa-discord';
+  if (lower.includes('telegram') || lower.includes('t.me')) return 'fab fa-telegram';
+  if (lower.includes('whatsapp')) return 'fab fa-whatsapp';
+  if (lower.includes('spotify')) return 'fab fa-spotify';
+  if (lower.includes('twitch')) return 'fab fa-twitch';
+  
+  // 2. Generic / Utility Icons
+  if (lower.includes('globe') || lower.includes('website') || lower.includes('http')) return 'fas fa-globe';
+  if (lower.includes('mail') || lower.includes('gmail') || lower.includes('@')) return 'fas fa-envelope';
+  if (lower.includes('phone')) return 'fas fa-phone';
+
+  // 3. Fallback for custom Font Awesome classes
+  if (str.startsWith('fa-') || str.startsWith('fab ') || str.startsWith('fas ')) {
+    return str.startsWith('fa-') ? 'fas ' + str : str;
+  }
+
+  return 'fas fa-link';
+}
     let appData = {
       profile: {
         name: "dilan",
@@ -1088,31 +1117,37 @@
     };
 
     document.getElementById('btn-save-post').addEventListener('click', () => {
-      const caption = document.getElementById('input-post-caption').value;
-      if (postCropper) {
-        const canvas = postCropper.getCroppedCanvas({ width: 800 });
-        newPostImageData = canvas.toDataURL();
-      }
+  const caption = document.getElementById('input-post-caption').value;
 
-      if (!caption && !newPostImageData) return;
+  if (postCropper) {
+    const canvas = postCropper.getCroppedCanvas({ width: 600 });
+    // Compress to JPEG with 70% quality to fit within JSONBin payload limits
+    newPostImageData = canvas.toDataURL('image/jpeg', 0.7);
+  }
 
-      if (!appData.posts) appData.posts = [];
+  if (!caption && !newPostImageData) return;
 
-      appData.posts.unshift({
-        id: Date.now().toString(),
-        caption: caption,
-        image: newPostImageData,
-        likes: 0,
-        date: "Just now",
-        comments: []
-      });
+  if (!appData.posts) appData.posts = [];
 
-      if (postCropper) { postCropper.destroy(); postCropper = null; }
-      document.getElementById('modal-post').classList.add('hidden');
-      render();
-      switchTab('posts');
-      saveCloudData();
-    });
+  appData.posts.unshift({
+    id: Date.now().toString(),
+    caption: caption,
+    image: newPostImageData,
+    likes: 0,
+    date: "Just now",
+    comments: []
+  });
+
+  if (postCropper) { 
+    postCropper.destroy(); 
+    postCropper = null; 
+  }
+  
+  document.getElementById('modal-post').classList.add('hidden');
+  render();
+  switchTab('posts');
+  saveCloudData(); // <--- Syncs posts to the cloud permanently!
+});
 
     window.deletePost = function(id) {
       appData.posts = appData.posts.filter(p => p.id !== id);
