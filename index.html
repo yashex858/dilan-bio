@@ -1163,9 +1163,16 @@
     };
 
     window.likePost = function(id) {
+      let likedPosts = JSON.parse(localStorage.getItem('dilan_liked_posts') || '[]');
+      if (likedPosts.includes(id)) {
+        alert("You have already liked this post!");
+        return;
+      }
       const post = appData.posts.find(p => p.id === id);
       if (post) {
         post.likes = (post.likes || 0) + 1;
+        likedPosts.push(id);
+        localStorage.setItem('dilan_liked_posts', JSON.stringify(likedPosts));
         render();
         saveCloudData();
       }
@@ -1183,10 +1190,6 @@
         }
       }
     };
-
-    document.getElementById('btn-open-blur').addEventListener('click', () => {
-      document.getElementById('modal-blur').classList.remove('hidden');
-    });
 
     document.getElementById('slider-blur').addEventListener('input', (e) => {
       if (!appData.bg) appData.bg = {};
