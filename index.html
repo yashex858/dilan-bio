@@ -944,7 +944,7 @@
             const savedAuthors = JSON.parse(localStorage.getItem('dilan_my_comments') || '{}');
             const isAuthor = savedAuthors[c.id] === true;
             
-            const canEdit = isRecent || isOwnerMode;
+            const canEdit = (isAuthor && isRecent) || isOwnerMode;
             const canDelete = isOwnerMode || isAuthor;
 
             return `
@@ -1275,15 +1275,26 @@
       }
     };
 
-    window.editComment = function(postId, commentId) {
+   window.editComment = function(postId, commentId) {
       const post = appData.posts.find(p => p.id === postId);
       if (!post || !post.comments) return;
 
       const comment = post.comments.find(c => c.id === commentId);
       if (!comment) return;
 
+      // Verify if the current browser session is the author of this comment
+      const savedAuthors = JSON.parse(localStorage.getItem('dilan_my_comments') || '{}');
+      const isAuthor = savedAuthors[commentId] === true;
+
       const oneHour = 3600000;
-      if (!isOwnerMode && (Date.now() - comment.createdAt > oneHour)) {
+      const isRecent = (Date.now() - (comment.createdAt || 0)) <= oneHour;
+
+   if (!isOwnerMode && !isAuthor) {
+        alert("You can only edit your own comments!");
+        return;
+      }
+
+      if (!isOwnerMode && !isRecent) {
         alert("Comments can only be edited within 1 hour of posting.");
         return;
       }
