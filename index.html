@@ -473,6 +473,7 @@
     let ownerPassword = localStorage.getItem('dilan_owner_pass') || 'dilan 01';
 
     let localChatId = localStorage.getItem('dilan_user_chat_id') || null;
+    let visitorName = localStorage.getItem('dilan_visitor_name') || '';
 
     const avatarColors = [
       'bg-indigo-600', 'bg-pink-600', 'bg-purple-600', 
@@ -542,7 +543,6 @@
           const data = await res.json();
           if (data.record) {
             appData = data.record;
-            // Ensure bg settings exist if loading from older schema
             if (!appData.bg) {
               appData.bg = { intensity: 20, opacity: 50, image: "" };
             }
@@ -673,6 +673,10 @@
         return;
       }
       err.classList.add('hidden');
+      
+      visitorName = name;
+      localStorage.setItem('dilan_visitor_name', visitorName);
+      
       if (!appData.clients) appData.clients = {};
       
       localChatId = name;
@@ -698,6 +702,9 @@
         document.getElementById('modal-rename').classList.add('hidden');
         return;
       }
+
+      visitorName = newName;
+      localStorage.setItem('dilan_visitor_name', visitorName);
 
       if (appData.clients && selectedClient && appData.clients[selectedClient]) {
         appData.clients[newName] = appData.clients[selectedClient].map(msg => {
@@ -836,7 +843,6 @@
       const encodedLoc = encodeURIComponent(appData.profile.location || 'Slimane, Iraq');
       document.getElementById('location-map-frame').src = `https://maps.google.com/maps?q=${encodedLoc}&t=&z=12&ie=UTF8&iwloc=&output=embed`;
 
-      // Safe Background Rendering & Verification
       const bgBlur = document.getElementById('bg-blur');
       if (appData.bg) {
         bgBlur.style.filter = `blur(${appData.bg.intensity}px)`;
@@ -909,7 +915,7 @@
         renameBtn.classList.add('hidden');
         headerTitle.textContent = "Chats List";
         
-        if (isOwnerMode || localChatId) {
+        if (isOwnerMode || visitorName) {
           newChatBox.classList.add('hidden');
         } else {
           newChatBox.classList.remove('hidden');
@@ -920,7 +926,7 @@
       if (isOwnerMode) {
         document.getElementById('chat-mode-badge').textContent = "Owner Admin Chat";
       } else {
-        document.getElementById('chat-mode-badge').textContent = "Direct Messages";
+        document.getElementById('chat-mode-badge').textContent = visitorName ? `Logged in as: ${visitorName}` : "Direct Messages";
       }
 
       const postsContainer = document.getElementById('posts-container');
@@ -931,9 +937,30 @@
         appData.posts.forEach(post => {
           const postEl = document.createElement('div');
           postEl.className = "glass-card rounded-3xl p-4 space-y-3 shadow-lg relative overflow-hidden";
-          let commentsHtml = (post.comments || []).map(c => `
-            <div class="bg-gray-900/60 p-2 rounded-xl text-xs text-gray-300">${c}</div>
-          `).join('');
+          
+          let commentsHtml = (post.comments || []).map(c => {
+            const oneHour = 3600000;
+            const isRecent = (Date.now() - (c.createdAt || 0)) <= oneHour;
+            const savedAuthors = JSON.parse(localStorage.getItem('dilan_my_comments') || '{}');
+            const isAuthor = savedAuthors[c.id] === true;
+            
+            const canEdit = isRecent || isOwnerMode;
+            const canDelete = isOwnerMode || isAuthor;
+
+            return `
+              <div class="bg-gray-900/60 p-2.5 rounded-xl text-xs space-y-1">
+                <div class="flex items-center justify-between">
+                  <span class="font-bold text-indigo-300">${c.author || 'Anonymous'}</span>
+                  <div class="flex items-center space-x-2 text-[10px] text-gray-400">
+                    <span>${c.createdAt ? new Date(c.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}</span>
+                    ${canEdit ? `<button onclick="editComment('${post.id}', '${c.id}')" class="hover:text-indigo-400">Edit</button>` : ''}
+                    ${canDelete ? `<button onclick="deleteComment('${post.id}', '${c.id}')" class="hover:text-red-400"><i class="fa-solid fa-trash"></i></button>` : ''}
+                  </div>
+                </div>
+                <p class="text-gray-200 break-words">${c.text}</p>
+              </div>
+            `;
+          }).join('');
 
           postEl.innerHTML = `
             <div class="flex items-center justify-between">
@@ -962,9 +989,16 @@
 
             <div class="space-y-1.5 pt-1">
               ${commentsHtml}
-              <div class="flex space-x-1 pt-1">
-                <input type="text" id="input-comment-${post.id}" placeholder="Add a comment..." class="flex-1 px-3 py-1.5 bg-gray-900 border border-gray-800 rounded-xl text-xs text-white focus:outline-none focus:border-indigo-500">
-                <button onclick="addComment('${post.id}')" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold">Post</button>
+              <div class="space-y-1.5 pt-1">
+                ${!visitorName && !isOwnerMode ? `
+                  <div class="flex space-x-1 mb-1">
+                    <input type="text" id="input-visitor-name-${post.id}" placeholder="Enter your name to comment*" class="flex-1 px-3 py-1.5 bg-gray-900 border border-gray-800 rounded-xl text-xs text-white focus:outline-none focus:border-indigo-500">
+                  </div>
+                ` : ''}
+                <div class="flex space-x-1">
+                  <input type="text" id="input-comment-${post.id}" placeholder="${visitorName ? 'Comment as ' + visitorName + '...' : 'Add a comment...'}" class="flex-1 px-3 py-1.5 bg-gray-900 border border-gray-800 rounded-xl text-xs text-white focus:outline-none focus:border-indigo-500">
+                  <button onclick="addComment('${post.id}')" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold">Post</button>
+                </div>
               </div>
             </div>
           `;
@@ -978,7 +1012,7 @@
         btnToggleMode.className = "px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold flex items-center space-x-1.5 transition";
         ownerElements.forEach(el => el.classList.remove('hidden'));
       } else {
-        modeText.textContent = "Client Mode";
+        modeText.textContent = visitorName ? `Hi, ${visitorName}` : "Client Mode";
         modeIcon.className = "fa-solid fa-user-lock";
         btnToggleMode.className = "px-3 py-1.5 rounded-xl bg-indigo-600/80 hover:bg-indigo-600 text-white text-xs font-semibold flex items-center space-x-1.5 transition";
         ownerElements.forEach(el => el.classList.add('hidden'));
@@ -1180,14 +1214,85 @@
 
     window.addComment = function(id) {
       const input = document.getElementById(`input-comment-${id}`);
-      if (input && input.value.trim() !== '') {
-        const post = appData.posts.find(p => p.id === id);
-        if (post) {
-          if (!post.comments) post.comments = [];
-          post.comments.push(input.value.trim());
-          render();
-          saveCloudData();
+      if (!input) return;
+      const text = input.value.trim();
+      if (!text) return;
+
+      let author = visitorName;
+      if (!author && !isOwnerMode) {
+        const nameField = document.getElementById(`input-visitor-name-${id}`);
+        if (nameField && nameField.value.trim()) {
+          author = nameField.value.trim();
+          visitorName = author;
+          localStorage.setItem('dilan_visitor_name', visitorName);
+          if (!localChatId) {
+            localChatId = visitorName;
+            localStorage.setItem('dilan_user_chat_id', localChatId);
+          }
+        } else {
+          alert("Please enter your name first!");
+          return;
         }
+      } else if (isOwnerMode) {
+        author = "dilan";
+      }
+
+      const post = appData.posts.find(p => p.id === id);
+      if (post) {
+        if (!post.comments) post.comments = [];
+        const commentId = Date.now().toString();
+        
+        post.comments.push({
+          id: commentId,
+          author: author,
+          text: text,
+          createdAt: Date.now()
+        });
+
+        let savedAuthors = JSON.parse(localStorage.getItem('dilan_my_comments') || '{}');
+        savedAuthors[commentId] = true;
+        localStorage.setItem('dilan_my_comments', JSON.stringify(savedAuthors));
+
+        input.value = '';
+        render();
+        saveCloudData();
+      }
+    };
+
+    window.deleteComment = function(postId, commentId) {
+      const post = appData.posts.find(p => p.id === postId);
+      if (!post || !post.comments) return;
+
+      const savedAuthors = JSON.parse(localStorage.getItem('dilan_my_comments') || '{}');
+      const isAuthor = savedAuthors[commentId] === true;
+
+      if (isOwnerMode || isAuthor) {
+        post.comments = post.comments.filter(c => c.id !== commentId);
+        render();
+        saveCloudData();
+      } else {
+        alert("You can only delete your own comments!");
+      }
+    };
+
+    window.editComment = function(postId, commentId) {
+      const post = appData.posts.find(p => p.id === postId);
+      if (!post || !post.comments) return;
+
+      const comment = post.comments.find(c => c.id === commentId);
+      if (!comment) return;
+
+      const oneHour = 3600000;
+      if (!isOwnerMode && (Date.now() - comment.createdAt > oneHour)) {
+        alert("Comments can only be edited within 1 hour of posting.");
+        return;
+      }
+
+      const newText = prompt("Edit your comment:", comment.text);
+      if (newText !== null && newText.trim() !== "") {
+        comment.text = newText.trim();
+        render();
+        saveCloudData();
       }
     };
 
@@ -1291,7 +1396,7 @@
     };
 
     document.getElementById('btn-save-link').addEventListener('click', () => {
-      const title = document.getElementById('link-title-input->value' || 'link-title-input').value;
+      const title = document.getElementById('link-title-input').value;
       const url = document.getElementById('link-url-input').value;
 
       if (!title || !url) return;
@@ -1360,3 +1465,4 @@
   </script>
 </body>
 </html>
+```[cite: 13]
