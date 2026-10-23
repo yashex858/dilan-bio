@@ -825,10 +825,10 @@
           const linkEl = document.createElement('div');
           linkEl.className = "glass-card rounded-2xl p-4 flex items-center justify-between shadow-md hover:border-indigo-500/50 transition group";
           linkEl.innerHTML = `
-            <a href="${link.url}" target="_blank" class="flex items-center space-x-3 flex-1 overflow-hidden">
-              <div class="w-10 h-10 rounded-xl bg-gray-800/80 flex items-center justify-center text-indigo-400 group-hover:bg-indigo-600 group-hover:text-white transition">
-                <i class="fa-solid ${link.icon || 'fa-link'}"></i>
-              </div>
+             <a href="${link.url}" target="_blank" class="flex items-center space-x-3 flex-1 overflow-hidden">
+                <div class="w-10 h-10 rounded-xl bg-gray-800/80 flex items-center justify-center text-indigo-400 group-hover:bg-indigo-600 transition">
+                  <i class="${getValidIconClass(link.icon || link.url)}"></i>
+                </div>
               <span class="font-semibold text-sm text-gray-100 truncate">${link.title}</span>
             </a>
             ${isOwnerMode ? `
@@ -1225,14 +1225,27 @@
       saveCloudData();
     });
 
-    document.getElementById('btn-add-link').addEventListener('click', () => {
+document.getElementById('btn-add-link').addEventListener('click', () => {
       editingLinkId = null;
       document.getElementById('modal-link-title').textContent = "Add New Link";
       document.getElementById('link-title-input').value = '';
       document.getElementById('link-url-input').value = '';
-      document.getElementById('link-icon-input').value = 'fa-link';
+      document.getElementById('link-icon-input').value = '';
       document.getElementById('modal-link').classList.remove('hidden');
     });
+
+    function getValidIconClass(iconStr) {
+      if (!iconStr) return 'fas fa-link';
+      const lower = iconStr.toLowerCase();
+      if (lower.includes('instagram')) return 'fab fa-instagram';
+      if (lower.includes('facebook')) return 'fab fa-facebook';
+      if (lower.includes('github')) return 'fab fa-github';
+      if (lower.includes('linkedin')) return 'fab fa-linkedin';
+      if (lower.includes('twitter') || lower.includes('x')) return 'fab fa-x-twitter';
+      if (lower.includes('youtube')) return 'fab fa-youtube';
+      if (lower.includes('tiktok')) return 'fab fa-tiktok';
+      return iconStr.startsWith('fa-') ? 'fas ' + iconStr : iconStr;
+    }
 
     window.openEditLinkModal = function(id) {
       editingLinkId = id;
