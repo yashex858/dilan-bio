@@ -142,19 +142,24 @@
     <!-- NAVIGATION TABS -->
     <div class="pt-4 border-t border-gray-800/80">
       <div class="glass-card p-1.5 rounded-2xl flex space-x-1">
-        <button id="tab-chat" onclick="switchTab('chat')" class="flex-1 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-2 bg-indigo-600 text-white shadow-md">
-          <i class="fa-solid fa-comments"></i>
-          <span>Chatting</span>
-        </button>
-        <button id="tab-posts" onclick="switchTab('posts')" class="flex-1 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-2 text-gray-400 hover:text-white">
+        <button id="tab-posts" onclick="switchTab('posts')" class="flex-1 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-2 bg-indigo-600 text-white shadow-md">
           <i class="fa-solid fa-image"></i>
           <span>Photos</span>
+        </button>
+        <button id="tab-chat" onclick="switchTab('chat')" class="flex-1 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-2 text-gray-400 hover:text-white">
+          <i class="fa-solid fa-comments"></i>
+          <span>Chatting</span>
         </button>
       </div>
     </div>
 
-    <!-- TAB 1: CHATTING SECTION -->
-    <div id="section-chat" class="space-y-3">
+    <!-- TAB 1: PHOTOS SECTION (DEFAULT LANDING) -->
+    <div id="section-posts" class="space-y-4">
+      <div id="posts-container" class="space-y-4"></div>
+    </div>
+
+    <!-- TAB 2: CHATTING SECTION -->
+    <div id="section-chat" class="hidden space-y-3">
       <div class="glass-card rounded-3xl p-4 space-y-3 shadow-lg">
         
         <!-- Chat Header -->
@@ -210,11 +215,6 @@
         </div>
 
       </div>
-    </div>
-
-    <!-- TAB 2: PHOTOS SECTION -->
-    <div id="section-posts" class="hidden space-y-4">
-      <div id="posts-container" class="space-y-4"></div>
     </div>
 
   </div>
@@ -459,7 +459,7 @@
     const BIN_ID = '6adb9b7bac6210605a4cad3c';
     const MASTER_KEY = '$2a$10$65F93IJYe9bTRe1hWY93uu77v67R/3ha./pQlj4J.4n8YK2Hbe.ua';
 
-    let activeTab = 'chat';
+    let activeTab = 'posts';
     let selectedClient = null;
     let isOwnerMode = false;
     let editingLinkId = null;
@@ -590,16 +590,16 @@
       const secChat = document.getElementById('section-chat');
       const secPosts = document.getElementById('section-posts');
 
-      if (tabName === 'chat') {
-        btnChat.className = "flex-1 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-2 bg-indigo-600 text-white shadow-md";
-        btnPosts.className = "flex-1 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-2 text-gray-400 hover:text-white";
-        secChat.classList.remove('hidden');
-        secPosts.classList.add('hidden');
-      } else {
+      if (tabName === 'posts') {
         btnPosts.className = "flex-1 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-2 bg-indigo-600 text-white shadow-md";
         btnChat.className = "flex-1 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-2 text-gray-400 hover:text-white";
         secPosts.classList.remove('hidden');
         secChat.classList.add('hidden');
+      } else {
+        btnChat.className = "flex-1 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-2 bg-indigo-600 text-white shadow-md";
+        btnPosts.className = "flex-1 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-2 text-gray-400 hover:text-white";
+        secChat.classList.remove('hidden');
+        secPosts.classList.add('hidden');
       }
     };
 
@@ -883,8 +883,8 @@
         });
       }
 
-      if (!isOwnerMode && localChatId && !selectedClient && appData.clients && appData.clients[localChatId]) {
-        selectedClient = localChatId;
+      if (!isOwnerMode && visitorName && !selectedClient) {
+        selectedClient = visitorName;
       }
 
       const listView = document.getElementById('chat-list-view');
@@ -1275,21 +1275,20 @@
       }
     };
 
-   window.editComment = function(postId, commentId) {
+    window.editComment = function(postId, commentId) {
       const post = appData.posts.find(p => p.id === postId);
       if (!post || !post.comments) return;
 
       const comment = post.comments.find(c => c.id === commentId);
       if (!comment) return;
 
-      // Verify if the current browser session is the author of this comment
       const savedAuthors = JSON.parse(localStorage.getItem('dilan_my_comments') || '{}');
       const isAuthor = savedAuthors[commentId] === true;
 
       const oneHour = 3600000;
       const isRecent = (Date.now() - (comment.createdAt || 0)) <= oneHour;
 
-   if (!isOwnerMode && !isAuthor) {
+      if (!isOwnerMode && !isAuthor) {
         alert("You can only edit your own comments!");
         return;
       }
@@ -1476,4 +1475,3 @@
   </script>
 </body>
 </html>
-```[cite: 13]
