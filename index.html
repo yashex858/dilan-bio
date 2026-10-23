@@ -219,6 +219,16 @@
 
   </div>
 
+  <!-- MODAL: Full-Size Photo Preview -->
+  <div id="modal-photo-preview" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="relative max-w-2xl w-full flex flex-col items-center">
+      <button onclick="closePhotoPreview()" class="absolute -top-10 right-0 text-gray-300 hover:text-white p-2">
+        <i class="fa-solid fa-xmark text-2xl"></i>
+      </button>
+      <img id="preview-modal-img" src="" class="max-w-full max-h-[80vh] rounded-2xl object-contain shadow-2xl border border-gray-800">
+    </div>
+  </div>
+
   <!-- MODAL: Interactive Map Pin Picker -->
   <div id="modal-map-loc" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="glass-card rounded-3xl max-w-md w-full p-6 relative space-y-3">
@@ -603,6 +613,22 @@
       }
     };
 
+    window.openPhotoPreview = function(imgSrc) {
+      const modal = document.getElementById('modal-photo-preview');
+      const img = document.getElementById('preview-modal-img');
+      if (modal && img && imgSrc) {
+        img.src = imgSrc;
+        modal.classList.remove('hidden');
+      }
+    };
+
+    window.closePhotoPreview = function() {
+      const modal = document.getElementById('modal-photo-preview');
+      if (modal) {
+        modal.classList.add('hidden');
+      }
+    };
+
     window.openMapLocationModal = function() {
       document.getElementById('modal-map-loc').classList.remove('hidden');
       
@@ -977,7 +1003,7 @@
             </div>
 
             ${post.caption ? `<p class="text-xs text-gray-200 leading-relaxed">${post.caption}</p>` : ''}
-            ${post.image ? `<img src="${post.image}" class="w-full h-auto max-h-96 object-cover rounded-2xl border border-gray-800">` : ''}
+            ${post.image ? `<img src="${post.image}" onclick="openPhotoPreview('${post.image}')" class="w-full h-auto max-h-96 object-cover rounded-2xl border border-gray-800 cursor-pointer hover:opacity-95 transition">` : ''}
 
             <div class="flex items-center justify-between pt-1 border-t border-gray-800/60 text-xs text-gray-400">
               <button onclick="likePost('${post.id}')" class="flex items-center space-x-1.5 hover:text-pink-400 transition">
