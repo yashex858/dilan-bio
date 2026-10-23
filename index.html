@@ -57,8 +57,8 @@
           D
         </div>
         <div>
-          <h2 id="header-name" class="font-bold text-sm leading-tight text-white">dilan01</h2>
-          <p id="header-title" class="text-xs text-gray-400">Digital Creator & Dev</p>
+          <h2 id="header-name" class="font-bold text-sm leading-tight text-white">dilan</h2>
+          <p id="header-title" class="text-xs text-gray-400">Barber</p>
         </div>
       </div>
 
@@ -85,12 +85,12 @@
         </button>
       </div>
 
-      <h1 id="profile-name" class="text-2xl font-extrabold text-white mb-1">dilan01</h1>
-      <p id="profile-bio" class="text-sm text-gray-300 leading-relaxed mb-3">Building immersive web experiences, design systems, and digital art. Let's collaborate!</p>
+      <h1 id="profile-name" class="text-2xl font-extrabold text-white mb-1">dilan</h1>
+      <p id="profile-bio" class="text-sm text-gray-300 leading-relaxed mb-3">Professional barber and styling expert.</p>
 
       <div class="inline-flex items-center space-x-1 px-3 py-1 rounded-full bg-gray-800/50 border border-gray-700/50 text-xs text-pink-400 mb-4">
         <i class="fa-solid fa-location-dot"></i>
-        <span id="profile-location">San Francisco, CA</span>
+        <span id="profile-location">Slimane, Iraq</span>
       </div>
 
       <!-- Dynamic Social Icons Row -->
@@ -110,11 +110,11 @@
             <i class="fa-solid fa-thumbtack text-[9px]"></i>
             <span>Pin Location</span>
           </button>
-          <span id="map-location-text" class="text-[10px] text-gray-400">San Francisco, CA</span>
+          <span id="map-location-text" class="text-[10px] text-gray-400">Slimane, Iraq</span>
         </div>
       </div>
       <div class="w-full h-40 rounded-2xl overflow-hidden border border-gray-800 shadow-inner">
-        <iframe id="location-map-frame" class="w-full h-full border-0" loading="lazy" allowfullscreen src="https://maps.google.com/maps?q=San%20Francisco,%20CA&t=&z=12&ie=UTF8&iwloc=&output=embed"></iframe>
+        <iframe id="location-map-frame" class="w-full h-full border-0" loading="lazy" allowfullscreen src="https://maps.google.com/maps?q=Slimane,%20Iraq&t=&z=12&ie=UTF8&iwloc=&output=embed"></iframe>
       </div>
     </div>
 
@@ -165,7 +165,6 @@
           </div>
           
           <div class="flex items-center space-x-2">
-            <!-- Rename Chat Button for User -->
             <button id="btn-rename-chat" onclick="openRenameModal()" class="hidden text-[10px] bg-gray-800 hover:bg-gray-700 text-indigo-300 px-2.5 py-1 rounded-lg border border-indigo-500/30 transition flex items-center space-x-1">
               <i class="fa-solid fa-pen-to-square text-[9px]"></i>
               <span>Rename</span>
@@ -200,7 +199,7 @@
           </div>
         </div>
 
-        <!-- Start New Chat Form (For Visitors without a Chat) -->
+        <!-- Start New Chat Form -->
         <div id="new-client-chat-box" class="pt-2 border-t border-gray-800/80 space-y-2">
           <p class="text-[10px] text-gray-400">Start your conversation with a name:</p>
           <div class="flex space-x-2">
@@ -232,9 +231,8 @@
       </h3>
       <p class="text-[11px] text-gray-300">Click anywhere on the interactive map below to set your location:</p>
       
-      <!-- Interactive Picker Map Container -->
       <div id="picker-map"></div>
-      <p id="picker-selected-text" class="text-xs text-indigo-300 font-semibold text-center truncate">Selected: San Francisco, CA</p>
+      <p id="picker-selected-text" class="text-xs text-indigo-300 font-semibold text-center truncate">Selected: Slimane, Iraq</p>
 
       <div class="flex space-x-2 pt-1">
         <button class="btn-close-modal w-1/2 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-xl text-xs font-semibold">Cancel</button>
@@ -297,7 +295,6 @@
           <input type="file" id="input-post-image" accept="image/*" class="block w-full text-xs text-gray-400 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-500">
         </div>
         
-        <!-- Cropper Box for Post -->
         <div id="post-cropper-wrapper" class="hidden space-y-2">
           <div class="flex space-x-1 justify-center bg-gray-900 p-1.5 rounded-xl border border-gray-800">
             <button type="button" onclick="setPostAspect(1)" class="px-2.5 py-1 bg-gray-800 hover:bg-indigo-600 text-white text-[11px] rounded-lg transition">Square (1:1)</button>
@@ -333,7 +330,6 @@
         <span>Customize Background</span>
       </h3>
       <div class="space-y-3">
-        <!-- Owner-only Background Image Upload -->
         <div class="owner-only hidden space-y-1.5 pb-2 border-b border-gray-800">
           <label class="block text-xs font-bold text-indigo-300">Background Image (Owner Only)</label>
           <input type="file" id="input-bg-image" accept="image/*" class="block w-full text-xs text-gray-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-500">
@@ -462,8 +458,11 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   
-  <!-- JavaScript Logic -->
+  <!-- JavaScript Logic with Online Cloud Storage Sync -->
   <script>
+    const BIN_ID = '6adb9b7bac6210605a4cad3c';
+    const MASTER_KEY = '$2a$10$65F93IJYe9bTRe1hWY93uu77v67R/3ha./pQlj4J.4n8YK2Hbe.ua';
+
     let activeTab = 'chat';
     let selectedClient = null;
     let isOwnerMode = false;
@@ -472,7 +471,7 @@
     let postCropper = null;
     let pickerMap = null;
     let pickerMarker = null;
-    let selectedPinLocation = "San Francisco, CA";
+    let selectedPinLocation = "Slimane, Iraq";
     let newPostImageData = null;
     let newChatImageData = null;
     let ownerPassword = localStorage.getItem('dilan_owner_pass') || 'dilan 01';
@@ -489,12 +488,12 @@
       return avatarColors[hash % avatarColors.length];
     }
 
-    let appData = JSON.parse(localStorage.getItem('dilan_bio_data')) || {
+    let appData = {
       profile: {
         name: "dilan",
         title: "Barber",
         bio: "Professional barber and styling expert.",
-        location: "San Francisco, CA",
+        location: "Slimane, Iraq",
         avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
         socials: [
           { icon: "fa-brands fa-github", url: "https://github.com" },
@@ -503,14 +502,43 @@
         ]
       },
       bg: { intensity: 20, opacity: 50, image: "" },
-      links: [
-        { id: '1', title: "Explore My Portfolio", url: "#", icon: "fa-globe" },
-        { id: '2', title: "Book a 1on1 Consultation", url: "#", icon: "fa-calendar" },
-        { id: '3', title: "Read My Recent Articles", url: "#", icon: "fa-newspaper" }
-      ],
+      links: [],
       posts: [],
       clients: {}
     };
+
+    // Cloud Sync Functions
+    async function loadCloudData() {
+      try {
+        const res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, {
+          headers: { 'X-Master-Key': MASTER_KEY }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.record) {
+            appData = data.record;
+            render();
+          }
+        }
+      } catch (err) {
+        console.error("Cloud load error:", err);
+      }
+    }
+
+    async function saveCloudData() {
+      try {
+        await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Master-Key': MASTER_KEY
+          },
+          body: JSON.stringify(appData)
+        });
+      } catch (err) {
+        console.error("Cloud save error:", err);
+      }
+    }
 
     const btnToggleMode = document.getElementById('btn-toggle-mode');
     const modeText = document.getElementById('mode-text');
@@ -548,7 +576,7 @@
       
       setTimeout(() => {
         if (!pickerMap) {
-          pickerMap = L.map('picker-map').setView([37.7749, -122.4194], 11);
+          pickerMap = L.map('picker-map').setView([35.556, 45.437], 11);
           L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19,
             attribution: '© OpenStreetMap'
@@ -592,6 +620,7 @@
       appData.profile.location = selectedPinLocation;
       document.getElementById('modal-map-loc').classList.add('hidden');
       render();
+      saveCloudData();
     });
 
     window.showChatList = function() {
@@ -623,6 +652,7 @@
       selectedClient = name;
       document.getElementById('chat-username').value = '';
       render();
+      saveCloudData();
     };
 
     window.openRenameModal = function() {
@@ -654,6 +684,7 @@
 
       document.getElementById('modal-rename').classList.add('hidden');
       render();
+      saveCloudData();
     });
 
     function renderChatList() {
@@ -757,7 +788,6 @@
       document.getElementById('profile-img').src = appData.profile.avatar;
       document.getElementById('header-avatar-badge').textContent = appData.profile.name.charAt(0).toUpperCase();
 
-      // Social Icons Rendering
       const socialContainer = document.getElementById('social-icons-container');
       socialContainer.innerHTML = '';
       if (appData.profile.socials && appData.profile.socials.length > 0) {
@@ -771,7 +801,7 @@
         });
       }
 
-      const encodedLoc = encodeURIComponent(appData.profile.location || 'San Francisco, CA');
+      const encodedLoc = encodeURIComponent(appData.profile.location || 'Slimane, Iraq');
       document.getElementById('location-map-frame').src = `https://maps.google.com/maps?q=${encodedLoc}&t=&z=12&ie=UTF8&iwloc=&output=embed`;
 
       const bgBlur = document.getElementById('bg-blur');
@@ -790,25 +820,27 @@
 
       const linksContainer = document.getElementById('links-container');
       linksContainer.innerHTML = '';
-      appData.links.forEach(link => {
-        const linkEl = document.createElement('div');
-        linkEl.className = "glass-card rounded-2xl p-4 flex items-center justify-between shadow-md hover:border-indigo-500/50 transition group";
-        linkEl.innerHTML = `
-          <a href="${link.url}" target="_blank" class="flex items-center space-x-3 flex-1 overflow-hidden">
-            <div class="w-10 h-10 rounded-xl bg-gray-800/80 flex items-center justify-center text-indigo-400 group-hover:bg-indigo-600 group-hover:text-white transition">
-              <i class="fa-solid ${link.icon || 'fa-link'}"></i>
-            </div>
-            <span class="font-semibold text-sm text-gray-100 truncate">${link.title}</span>
-          </a>
-          ${isOwnerMode ? `
-            <div class="flex items-center space-x-1 ml-2">
-              <button onclick="openEditLinkModal('${link.id}')" class="p-2 text-gray-400 hover:text-indigo-400 transition"><i class="fa-solid fa-pencil text-xs"></i></button>
-              <button onclick="deleteLink('${link.id}')" class="p-2 text-gray-400 hover:text-red-400 transition"><i class="fa-solid fa-trash text-xs"></i></button>
-            </div>
-          ` : ''}
-        `;
-        linksContainer.appendChild(linkEl);
-      });
+      if (appData.links) {
+        appData.links.forEach(link => {
+          const linkEl = document.createElement('div');
+          linkEl.className = "glass-card rounded-2xl p-4 flex items-center justify-between shadow-md hover:border-indigo-500/50 transition group";
+          linkEl.innerHTML = `
+            <a href="${link.url}" target="_blank" class="flex items-center space-x-3 flex-1 overflow-hidden">
+              <div class="w-10 h-10 rounded-xl bg-gray-800/80 flex items-center justify-center text-indigo-400 group-hover:bg-indigo-600 group-hover:text-white transition">
+                <i class="fa-solid ${link.icon || 'fa-link'}"></i>
+              </div>
+              <span class="font-semibold text-sm text-gray-100 truncate">${link.title}</span>
+            </a>
+            ${isOwnerMode ? `
+              <div class="flex items-center space-x-1 ml-2">
+                <button onclick="openEditLinkModal('${link.id}')" class="p-2 text-gray-400 hover:text-indigo-400 transition"><i class="fa-solid fa-pencil text-xs"></i></button>
+                <button onclick="deleteLink('${link.id}')" class="p-2 text-gray-400 hover:text-red-400 transition"><i class="fa-solid fa-trash text-xs"></i></button>
+              </div>
+            ` : ''}
+          `;
+          linksContainer.appendChild(linkEl);
+        });
+      }
 
       if (!isOwnerMode && localChatId && !selectedClient && appData.clients && appData.clients[localChatId]) {
         selectedClient = localChatId;
@@ -916,8 +948,6 @@
         btnToggleMode.className = "px-3 py-1.5 rounded-xl bg-indigo-600/80 hover:bg-indigo-600 text-white text-xs font-semibold flex items-center space-x-1.5 transition";
         ownerElements.forEach(el => el.classList.add('hidden'));
       }
-
-      localStorage.setItem('dilan_bio_data', JSON.stringify(appData));
     }
 
     btnToggleMode.addEventListener('click', () => {
@@ -986,12 +1016,14 @@
       newChatImageData = null;
       document.getElementById('chat-image-preview-text').classList.add('hidden');
       render();
+      saveCloudData();
     });
 
     window.deleteChatMessage = function(id) {
       if (!selectedClient || !appData.clients[selectedClient]) return;
       appData.clients[selectedClient] = appData.clients[selectedClient].filter(m => m.id !== id);
       render();
+      saveCloudData();
     };
 
     document.querySelectorAll('.btn-close-modal').forEach(btn => {
@@ -1002,7 +1034,6 @@
       });
     });
 
-    // Background Image Uploader Logic
     document.getElementById('input-bg-image').addEventListener('change', (e) => {
       const files = e.target.files;
       if (files && files.length > 0) {
@@ -1010,6 +1041,7 @@
         reader.onload = function(evt) {
           appData.bg.image = evt.target.result;
           render();
+          saveCloudData();
         };
         reader.readAsDataURL(files[0]);
       }
@@ -1018,9 +1050,9 @@
     window.removeBgImage = function() {
       appData.bg.image = "";
       render();
+      saveCloudData();
     };
 
-    // Post Cropper Setup
     document.getElementById('btn-add-post').addEventListener('click', () => {
       newPostImageData = null;
       document.getElementById('input-post-caption').value = '';
@@ -1079,11 +1111,13 @@
       document.getElementById('modal-post').classList.add('hidden');
       render();
       switchTab('posts');
+      saveCloudData();
     });
 
     window.deletePost = function(id) {
       appData.posts = appData.posts.filter(p => p.id !== id);
       render();
+      saveCloudData();
     };
 
     window.likePost = function(id) {
@@ -1091,6 +1125,7 @@
       if (post) {
         post.likes = (post.likes || 0) + 1;
         render();
+        saveCloudData();
       }
     };
 
@@ -1102,6 +1137,7 @@
           if (!post.comments) post.comments = [];
           post.comments.push(input.value.trim());
           render();
+          saveCloudData();
         }
       }
     };
@@ -1112,13 +1148,14 @@
     document.getElementById('slider-blur').addEventListener('input', (e) => {
       appData.bg.intensity = e.target.value;
       render();
+      saveCloudData();
     });
     document.getElementById('slider-opacity').addEventListener('input', (e) => {
       appData.bg.opacity = e.target.value;
       render();
+      saveCloudData();
     });
 
-    // Profile & Socials Editor
     document.getElementById('btn-edit-profile').addEventListener('click', () => {
       document.getElementById('edit-name').value = appData.profile.name;
       document.getElementById('edit-title').value = appData.profile.title;
@@ -1164,7 +1201,6 @@
       appData.profile.bio = document.getElementById('edit-bio').value;
       appData.profile.location = document.getElementById('edit-location').value;
       
-      // Gather dynamic socials
       const iconInputs = document.querySelectorAll('.social-icon-input');
       const urlInputs = document.querySelectorAll('.social-url-input');
       const updatedSocials = [];
@@ -1186,6 +1222,7 @@
 
       document.getElementById('modal-profile').classList.add('hidden');
       render();
+      saveCloudData();
     });
 
     document.getElementById('btn-add-link').addEventListener('click', () => {
@@ -1216,6 +1253,8 @@
 
       if (!title || !url) return;
 
+      if (!appData.links) appData.links = [];
+
       if (editingLinkId) {
         const link = appData.links.find(l => l.id === editingLinkId);
         if (link) {
@@ -1229,11 +1268,14 @@
 
       document.getElementById('modal-link').classList.add('hidden');
       render();
+      saveCloudData();
     });
 
     window.deleteLink = function(id) {
+      if (!appData.links) return;
       appData.links = appData.links.filter(l => l.id !== id);
       render();
+      saveCloudData();
     };
 
     document.getElementById('btn-change-avatar').addEventListener('click', () => {
@@ -1268,9 +1310,11 @@
       }
       document.getElementById('modal-crop').classList.add('hidden');
       render();
+      saveCloudData();
     });
 
-    render();
+    // Initial Load from Cloud
+    loadCloudData();
   </script>
 </body>
 </html>
