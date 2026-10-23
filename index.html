@@ -53,8 +53,8 @@
     <!-- Top Bar Header -->
     <header class="glass-card rounded-2xl p-3 flex items-center justify-between shadow-lg">
       <div class="flex items-center space-x-3">
-        <div id="header-avatar-badge" class="w-10 h-10 rounded-full bg-indigo-600 flex items-center justify-center text-white font-bold text-lg">
-          D
+        <div class="w-10 h-10 rounded-full overflow-hidden border border-indigo-500/50 shadow-md">
+          <img id="header-avatar-img" src="" alt="Avatar" class="w-full h-full object-cover">
         </div>
         <div>
           <h2 id="header-name" class="font-bold text-sm leading-tight text-white">dilan</h2>
@@ -851,7 +851,11 @@
       document.getElementById('profile-location').textContent = appData.profile.location;
       document.getElementById('map-location-text').textContent = appData.profile.location;
       document.getElementById('profile-img').src = appData.profile.avatar;
-      document.getElementById('header-avatar-badge').textContent = appData.profile.name.charAt(0).toUpperCase();
+      
+      const headerAvatarImg = document.getElementById('header-avatar-img');
+      if (headerAvatarImg) {
+        headerAvatarImg.src = appData.profile.avatar;
+      }
 
       const socialContainer = document.getElementById('social-icons-container');
       socialContainer.innerHTML = '';
