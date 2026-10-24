@@ -64,7 +64,7 @@
 
       <div class="flex items-center space-x-2">
         <!-- Blur & Background Control Toggle Button -->
-        <button id="btn-open-blur" class="p-2 rounded-xl bg-gray-800/60 hover:bg-gray-700/60 text-gray-300 hover:text-white transition">
+        <button id="btn-open-blur" class="owner-only hidden rounded-xl bg-gray-800/60 hover:bg-gray-700/60 text-gray-300 hover:text-white transition">
           <i class="fa-solid fa-palette text-sm"></i>
         </button>
 
@@ -1499,8 +1499,14 @@
       render();
       saveCloudData();
     });
-    document.getElementById('btn-open-blur').onclick = () => document.getElementById('modal-blur').classList.remove('hidden');
-    
+    document.getElementById('btn-open-blur').onclick = () => {
+  if (isOwnerMode) {
+    document.getElementById('modal-blur').classList.remove('hidden');
+  } else {
+    alert("Only the owner can customize the background!");
+  }
+};
+
     // Initial Load from Cloud
     loadCloudData();
   </script>
