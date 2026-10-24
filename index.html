@@ -1499,7 +1499,8 @@
       render();
       saveCloudData();
     });
-
+    document.getElementById('btn-open-blur').onclick = () => document.getElementById('modal-blur').classList.remove('hidden');
+    
     // Initial Load from Cloud
     loadCloudData();
   </script>
