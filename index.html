@@ -1557,25 +1557,31 @@ window.setBgAspect = function(ratio) {
   }
 };
 
-// Save cropped image as background
-document.getElementById('btn-save-bg-crop').addEventListener('click', () => {
-  if (bgCropper) {
-    const canvas = bgCropper.getCroppedCanvas({ maxWidth: 1920, maxHeight: 1080 });
-    const croppedDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+      // Save cropped image as background
+  document.getElementById('btn-save-bg-crop').onclick = () => {
+    if (bgCropper) {
+      const canvas = bgCropper.getCroppedCanvas({ maxWidth: 1920, maxHeight: 1080 });
+      appData.bgImage = canvas.toDataURL('image/jpeg', 0.8);
+      render();
+      saveCloudData();
+      bgCropper.destroy();
+      bgCropper = null;
+      document.getElementById('bg-cropper-wrapper').classList.add('hidden');
+      document.getElementById('input-bg-image').value = '';
+    }
+  };
 
-    appData.bgImage = croppedDataUrl;
-    render();
-    saveCloudData();
+  // Initial Load from Cloud
+  loadCloudData();
 
-    bgCropper.destroy();
-    bgCropper = null;
-    document.getElementById('bg-cropper-wrapper').classList.add('hidden');
-    document.getElementById('input-bg-image').value = '';
+  // Apply saved background on load if it exists
+  const bgBlur = document.getElementById('bg-blur');
+  if (appData && appData.bgImage && bgBlur) {
+    bgBlur.style.backgroundImage = `url('${appData.bgImage}')`;
+    bgBlur.style.backgroundSize = 'cover';
+    bgBlur.style.backgroundPosition = 'center';
   }
-});
-                                            
-    // Initial Load from Cloud
-    loadCloudData();
-  </script>
+
+</script>
 </body>
 </html>
