@@ -331,7 +331,7 @@
 
   <!-- MODAL: Background Blur & Image Settings -->
   <div id="modal-blur" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <div class="glass-card rounded-3xl max-w-sm w-full p-6 relative space-y-4">
+    <div class="glass-card rounded-3xl max-w-sm w-full p-6 relative space-y-4 max-h-[90vh] overflow-y-auto chat-scroll">
       <button class="btn-close-modal absolute top-4 right-4 text-gray-400 hover:text-white p-1">
         <i class="fa-solid fa-xmark text-lg"></i>
       </button>
@@ -340,10 +340,25 @@
         <span>Customize Background</span>
       </h3>
       <div class="space-y-3">
-        <div class="owner-only hidden space-y-1.5 pb-2 border-b border-gray-800">
+        <div class="owner-only hidden space-y-2 pb-2 border-b border-gray-800">
           <label class="block text-xs font-bold text-indigo-300">Background Image (Owner Only)</label>
           <input type="file" id="input-bg-image" accept="image/*" class="block w-full text-xs text-gray-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-500">
-          <button onclick="removeBgImage()" class="text-[10px] text-red-400 hover:underline">Remove Custom Background Image</button>
+          
+          <div id="bg-cropper-wrapper" class="hidden space-y-2 pt-2">
+            <div class="flex flex-wrap gap-1 justify-center bg-gray-900 p-1.5 rounded-xl border border-gray-800">
+              <button type="button" onclick="setBgAspect(NaN)" class="px-2 py-1 bg-gray-800 hover:bg-indigo-600 text-white text-[10px] rounded-lg transition">Free</button>
+              <button type="button" onclick="setBgAspect(16/9)" class="px-2 py-1 bg-gray-800 hover:bg-indigo-600 text-white text-[10px] rounded-lg transition">16:9</button>
+              <button type="button" onclick="setBgAspect(4/3)" class="px-2 py-1 bg-gray-800 hover:bg-indigo-600 text-white text-[10px] rounded-lg transition">4:3</button>
+              <button type="button" onclick="setBgAspect(1)" class="px-2 py-1 bg-gray-800 hover:bg-indigo-600 text-white text-[10px] rounded-lg transition">1:1</button>
+              <button type="button" onclick="setBgAspect(9/16)" class="px-2 py-1 bg-gray-800 hover:bg-indigo-600 text-white text-[10px] rounded-lg transition">9:16</button>
+            </div>
+            <div class="img-cropper-container rounded-2xl overflow-hidden bg-gray-900 flex items-center justify-center border border-gray-700">
+              <img id="bg-cropper-target" class="max-w-full" src="">
+            </div>
+            <button id="btn-apply-bg-crop" class="w-full py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold transition">Crop & Apply Background</button>
+          </div>
+
+          <button onclick="removeBgImage()" class="text-[10px] text-red-400 hover:underline block pt-1">Remove Custom Background Image</button>
         </div>
         <div>
           <div class="flex justify-between text-xs text-gray-300 mb-1">
@@ -475,6 +490,7 @@
     let editingLinkId = null;
     let cropper = null;
     let postCropper = null;
+    let bgCropper = null;
     let pickerMap = null;
     let pickerMarker = null;
     let selectedPinLocation = "Slimane, Iraq";
@@ -592,6 +608,10 @@
     const passwordError = document.getElementById('password-error');
     const btnSubmitPassword = document.getElementById('btn-submit-password');
     const btnCancelPassword = document.getElementById('btn-cancel-password');
+
+    document.getElementById('btn-open-blur').addEventListener('click', () => {
+      document.getElementById('modal-blur').classList.remove('hidden');
+    });
 
     window.switchTab = function(tabName) {
       activeTab = tabName;
@@ -1130,26 +1150,61 @@
         document.querySelectorAll('.fixed').forEach(m => m.classList.add('hidden'));
         if (cropper) { cropper.destroy(); cropper = null; }
         if (postCropper) { postCropper.destroy(); postCropper = null; }
+        if (bgCropper) { bgCropper.destroy(); bgCropper = null; }
       });
     });
 
     document.getElementById('input-bg-image').addEventListener('change', (e) => {
+      if (!isOwnerMode) return;
       const files = e.target.files;
       if (files && files.length > 0) {
         const reader = new FileReader();
         reader.onload = function(evt) {
-          if (!appData.bg) appData.bg = {};
-          appData.bg.image = evt.target.result;
-          render();
-          saveCloudData();
+          const targetImg = document.getElementById('bg-cropper-target');
+          targetImg.src = evt.target.result;
+          document.getElementById('bg-cropper-wrapper').classList.remove('hidden');
+
+          if (bgCropper) bgCropper.destroy();
+          bgCropper = new Cropper(targetImg, {
+            aspectRatio: NaN,
+            viewMode: 1
+          });
         };
         reader.readAsDataURL(files[0]);
       }
     });
 
+    window.setBgAspect = function(ratio) {
+      if (bgCropper) {
+        bgCropper.setAspectRatio(ratio);
+      }
+    };
+
+    document.getElementById('btn-apply-bg-crop').addEventListener('click', () => {
+      if (!isOwnerMode) return;
+      if (bgCropper) {
+        const canvas = bgCropper.getCroppedCanvas({ width: 1200 });
+        if (!appData.bg) appData.bg = {};
+        appData.bg.image = canvas.toDataURL('image/jpeg', 0.8);
+        bgCropper.destroy();
+        bgCropper = null;
+      }
+      document.getElementById('bg-cropper-wrapper').classList.add('hidden');
+      document.getElementById('input-bg-image').value = '';
+      render();
+      saveCloudData();
+    });
+
     window.removeBgImage = function() {
+      if (!isOwnerMode) return;
       if (!appData.bg) appData.bg = {};
       appData.bg.image = "";
+      if (bgCropper) {
+        bgCropper.destroy();
+        bgCropper = null;
+      }
+      document.getElementById('bg-cropper-wrapper').classList.add('hidden');
+      document.getElementById('input-bg-image').value = '';
       render();
       saveCloudData();
     };
